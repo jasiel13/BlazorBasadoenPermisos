@@ -1,0 +1,52 @@
+﻿@page "/editar-quiz/{QuizId:int}"
+@inject IRepositorio repositorio
+@inject IMostrarMensaje mostrarMensaje
+@inject NavigationManager navigationManager
+@attribute [Authorize(Roles = "Administrador,Usuario")]
+
+@if (Quiz == null)
+{
+    <text>Cargando...</text>
+}
+else
+{
+    <FormularioQuiz Quiz="Quiz" OnValidSubmit="Editar" Es_EditarQuiz="true" Titulo="Editar Quiz"/>
+}
+
+@code {
+    [Parameter] public int QuizId { get; set; }
+    Quiz Quiz;    
+
+    protected async override Task OnInitializedAsync()
+    {
+        var httpResponse = await repositorio.Get<Quiz>($"api/Quiz/{QuizId}");
+        if (httpResponse.Error)
+        {
+            if (httpResponse.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                navigationManager.NavigateTo("indice-quiz");
+            }
+            else
+            {
+                await mostrarMensaje.MostrarMensajeError(await httpResponse.GetBody());
+            }
+        }
+        else
+        {
+            Quiz = httpResponse.Response;
+        }
+    }
+
+    private async Task Editar()
+    {
+        var httpResponse = await repositorio.Put("api/Quiz", Quiz);
+        if (httpResponse.Error)
+        {
+            await mostrarMensaje.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            navigationManager.NavigateTo("indice-quiz");
+        }
+    }
+}

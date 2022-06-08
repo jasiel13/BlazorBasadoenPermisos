@@ -1,0 +1,83 @@
+﻿<div>
+    <label for="video">@Label</label>
+    <div>
+        <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="OnChange" multiple />
+    </div>
+</div>
+
+<div>
+    @*si es diferente de nulo mostramos el video*@
+    @if (progress.HasValue)
+    {
+        @if (progress < 100)
+        {
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width:@(progress)%;" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">@progress%</div>
+            </div>
+        }
+        else
+        {
+            @if (videoBase64 != null)
+            {
+                <video controls width="300px" height="300px">
+                    <source src="@videoBase64" type="audio/mp4" />
+                </video>
+            }
+        }
+    }
+</div>
+
+@code {
+    //nombre que va en el label por defecto es imagen
+    [Parameter] public string Label { get; set; } = "Video";
+
+    //este parametro recibira la url de la imagen cuando vayamos a editar
+    [Parameter] public string VideoURL { get; set; }
+
+    //devolvemos la representacion de la imagen en base64
+    [Parameter] public EventCallback<string> VideoSeleccionado { get; set; }
+
+    //private List<string> imageSources = new List<string>();
+    private string videoBase64;
+
+    public int? progress;
+
+    //el evento se ejecuta cuando el usuario selecciona una imagen
+    async Task OnChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            int countSize = 0;
+
+            using var stream = file.OpenReadStream(52428800);//el valor maximo permitido de subida es 512,000 bytes (500 KB) lo aumentamos a 50MB
+            using var ms = new MemoryStream();
+
+            #region Proggress
+            var bufferSize = 1048576;
+            var buffer = new byte[bufferSize];
+            int count;
+            while ((count = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+            {
+                ms.Write(buffer, 0, count);
+                countSize += count;
+                progress = (int)(((decimal)countSize / file.Size) * 100);
+                this.StateHasChanged();
+                await Task.Delay(1000);
+
+                Console.WriteLine(progress);
+            }
+            #endregion
+
+            await stream.CopyToAsync(ms);
+            videoBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+            //imageSources.Add(imagenBase64);
+            //Console.WriteLine(imagenBase64);
+
+            //invocamos el metodo y le pasamos la imagen en base64
+            await VideoSeleccionado.InvokeAsync(videoBase64);
+
+            //este metodo nos ayuda a visualizar las imagenes una vez ejecutado el eventcallback
+            //StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,27 @@
+﻿@page "/crear-quiz"
+@inject IRepositorio repositorio
+@inject NavigationManager navigationManager
+@inject IMostrarMensaje mostrarMensajes
+@attribute [Authorize(Roles = "Administrador,Usuario")]
+
+<FormularioQuiz OnValidSubmit="Crear" Quiz="Quiz" Titulo="Crear Quiz" />
+
+@code {
+    private Quiz Quiz = new Quiz();
+
+    async Task Crear()
+    {
+        var httpResponse = await repositorio.Post("api/Quiz", Quiz);
+        @if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            await mostrarMensajes.MostrarMensajeExitoso("Quiz Creado");
+            navigationManager.NavigateTo("indice-quiz");
+        }
+    }
+}
+
+

@@ -1,0 +1,74 @@
+﻿@page "/registro"
+@inject IRepositorio repositorio
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject IMostrarMensaje mostrarMensajes
+@attribute [Authorize(Roles = "Administrador")]
+@using Pages.Usuarios;
+
+<EditForm Model="@userInfo" OnValidSubmit="CrearUsuario">
+    <DataAnnotationsValidator />
+
+    <Card Class="card mb-3">
+        <CardHeader Class="card-header">
+            <div class="row">
+                <div class="col">
+                    <Texto Typo="Typo.h5" Class="mb-0">Crear Usuario</Texto>
+                </div>
+            </div>
+        </CardHeader>
+        <CardBody Class="card-body border-top">
+            <div class="form-row">
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputLabel for="usuario">Usuario</InputLabel>
+                        <InputText class="form-control form-control-sm" placeholder="Usuario" @bind-Value="@userInfo.Usuario" />
+                        <ValidationMessage For="@(() => userInfo.Usuario)" />
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputLabel for="password">Contraseña</InputLabel>
+                        <InputPassword class="form-control form-control-sm" PlaceHolder="Contraseña" ID="txtPassword" @bind-Value="@userInfo.Password" />
+                        <ValidationMessage For="@(() => userInfo.Password)" />
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputLabel for="passwordrandom">Generar Contraseña</InputLabel><br />
+                        <Boton Class="btn btn-outline-dark btn-sm mr-2" ButtonType="ButtonType.Button" @onclick="GenerateRandomPass"><Icono Icon="oi oi-random fs--2 mr-1"></Icono></Boton>
+                    </div>
+                </div>
+            </div>
+        </CardBody>
+        <CardFooter Class="card-footer border-top text-right bg-transparent">
+            <Boton Class="btn btn-secondary btn-sm mr-2" ButtonType="ButtonType.Submit"><Icono Icon="fas fa-check fs--2 mr-1"></Icono>Registrar</Boton>
+        </CardFooter>
+    </Card>
+</EditForm>
+
+@code{
+
+    private UserInfo userInfo = new UserInfo();
+
+    private async Task CrearUsuario()
+    {
+        var httpResponse = await repositorio.Post<UserInfo, UserToken>("api/Cuentas/Crear", userInfo);
+
+        if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            //await loginService.Login(httpResponse.Response.Token);
+            navigationManager.NavigateTo("usuarios");
+        }
+    }
+
+    public async Task GenerateRandomPass()
+    {
+        userInfo.Password = GenerarPassword.GenerateRandomPassword();
+    }
+}
+

@@ -1,0 +1,151 @@
+﻿@page "/indice-cursos"
+@inject IRepositorio repositorio
+@inject IMostrarMensaje mostrarMensajes
+@inject IJSRuntime JS
+@inject NavigationManager navigationManager
+@attribute [Authorize(Roles = "Administrador,Usuario")]
+@using System.Security.Claims
+
+<Card Class="card mb-3">
+    <CardHeader Class="card-header bg-light">
+        <div class="row justify-content-between align-items-center">
+            <div class="col-sm-auto">
+                <div class="d-inline-block mr-3">
+                    <div class="input-group input-group-sm d-flex align-items-center">
+                        <Texto Typo="Typo.h5" Class="mb-0">Cursos</Texto>
+                    </div>
+                </div>
+                @if (user.IsInRole("Administrador"))
+                {
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            <Enlace Class="btn btn-outline-dark btn-sm" Href="crear-curso"><Icono Icon="fas fa-plus" data-fa-transform="shrink-3 down-2"></Icono><Texto Typo="Typo.normal" Class="d-none d-sm-inline-block ml-1">Crear</Texto></Enlace>
+                        </div>
+                    </div>
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            <div class="custom-control custom-switch">
+                                <input class="custom-control-input" id="customSwitch1" type="checkbox" @onchange="e => CheckChanged(e)">
+                                <label class="custom-control-label" for="customSwitch1">Inactivos</label>
+                            </div>
+                        </div>
+                    </div>
+                }              
+            </div>
+        </div>
+    </CardHeader>
+    <CardBody Class="card-body border-top">
+        <div class="row light">
+            @if (ListadeCursos == null)
+            {
+                <LoadingSpinner IsLoading="Procesando" />
+            }
+            else
+            {
+                @foreach (var item in ListadeCursos)
+                {
+                    <div class="col-sm-6 col-lg-4 mb-4">
+                        <Card Class="card overflow-hidden" style="width: 20rem; height: 370px;">
+                            <Card Class="card-img-top">
+                                <Enlace Class="manita" Href="@("detalles-curso/"+item.CursoId)">
+                                    <Imagen Class="img-fluidcustom" Src="@item.Imagen" alt="Card image cap" />
+                                </Enlace>
+                            </Card>
+                            <CardBody Class="card-body">
+                                <Texto Typo="Typo.body2" Class="card-title">@item.NombreCortado</Texto>
+                                <Texto Typo="Typo.body2" Class="card-text">
+                                    @item.DescripcionCortada
+                                </Texto>
+                                @if (user.IsInRole("Administrador"))
+                                {
+                                    <Enlace Class="btn p-0" Href="@("editar-curso/" + item.CursoId)" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar">
+                                        <Icono Icon="text-500 fas fa-edit" />
+                                    </Enlace>
+                                    <BotonIcono Class="btn p-0 ms-2" ButtonType="ButtonType.Button" data-bs-toggle="tooltip" data-bs-placement="top" title="Borrar" Icon="text-500 fas fa-trash-alt" @onclick="@(() => Desactivar(item))" />
+                                }
+                            </CardBody>
+                        </Card>
+                    </div>
+                }
+            }
+        </div>
+    </CardBody>
+    <CardFooter Class="card-footer border-top d-flex justify-content-center bg-transparent">
+        <Paginacion PaginaActual="paginaActual" PaginaSeleccionada="paginaSeleccionada" PaginasTotales="paginasTotales" />
+    </CardFooter>
+</Card>
+<br />
+
+@code{
+    private bool Procesando = true;
+
+    ClaimsPrincipal user;
+    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    public List<Curso> ListadeCursos { get; set; }
+
+    private int paginaActual = 1;
+    private int paginasTotales;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        user = authState.User;
+
+        await Cargar();
+    }
+
+    private async Task paginaSeleccionada(int pagina)
+    {
+        paginaActual = pagina;
+        await Cargar(pagina);
+    }
+
+    private async Task Cargar(int pagina = 1)
+    {
+        var responseHttp = await repositorio.Get<List<Curso>>($"api/Curso?pagina={pagina}");
+        if (!responseHttp.Error)
+        {
+            ListadeCursos = responseHttp.Response;
+            Procesando = false;
+
+            var conteo = responseHttp.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault();
+            paginasTotales = int.Parse(responseHttp.HttpResponseMessage.Headers.GetValues("totalPaginas").FirstOrDefault());
+        }
+    }
+
+    #region BorrarCurso
+    public async Task Desactivar(Curso curso)
+    {
+        string mensajeconfirmacion = $"¿Desea borrar este curso: {curso.Nombre}?";
+        var confirmado = await JS.Confirm("Confirmar", mensajeconfirmacion, IJSRuntimeExtensionMethods.TipoMensajeSweetAlert.question);
+        if (confirmado)
+        {
+            curso.Activo = false;
+            var httpResponse = await repositorio.Put("api/Curso/Desactivar", curso);
+            if (httpResponse.Error)
+            {
+                await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+            }
+            else
+            {
+                navigationManager.NavigateTo("indice-cursos");
+                await Cargar();
+            }
+        }
+    }
+    #endregion
+
+    #region FiltroActivos
+
+    private Boolean Activos = false;
+    private async Task CheckChanged(ChangeEventArgs ev)
+    {
+        Activos = (Boolean)ev.Value;
+        var responseHttp = await repositorio.Get<PaginadorGenerico<Curso>>($"api/Curso/FiltroActivos?filtro={Activos}");
+        var resultado = responseHttp.Response.Resultado;
+        ListadeCursos = (List<Curso>)resultado;
+    }
+
+    #endregion
+}

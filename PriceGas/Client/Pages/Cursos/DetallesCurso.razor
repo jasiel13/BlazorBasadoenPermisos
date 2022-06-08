@@ -1,0 +1,195 @@
+﻿@page "/detalles-curso/{CursoId:int}"
+@inject IRepositorio repositorio
+@inject NavigationManager navigationManager
+@inject IMostrarMensaje mostrarMensajes
+@inject IJSRuntime JS
+@using System.Security.Claims
+
+@if (Curso == null)
+{
+    <LoadingSpinner IsLoading="Procesando" />
+}
+else
+{
+    <Card Class="card mb-3">
+        <CardMedia Class="bg-holder d-none d-lg-block bg-card" Image="Img/corner-4.png"></CardMedia>
+        <CardBody Class="card-body position-relative">
+            <div class="row">
+                <div class="col-lg-8">
+                    <Texto Typo="Typo.h3">@Curso.Nombre</Texto>
+                    <Texto Typo="Typo.body2" Class="mt-2">
+                        @Curso.Descripcion
+                    </Texto>
+                    @if (user.IsInRole("Administrador"))
+                    {
+                        <Enlace Class="btn btn-dark btn-sm mr-1 mb-1" type="button" Href="@("crear-temas/"+Curso.CursoId)">
+                            <Texto Typo="Typo.normal" Class="fas fa-plus mr-1" data-fa-transform="shrink-3"></Texto>Añadir Tema
+                        </Enlace>
+                    }
+                </div>
+            </div>
+        </CardBody>
+    </Card>
+}
+
+@if (ListadeTemas != null)
+{
+    <Card Class="card mb-3">
+        <CardHeader Class="card-header bg-light">
+            <div class="row justify-content-between align-items-center">
+                <div class="col-sm-auto">
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            <Texto Typo="Typo.h5" Class="mb-0">Temas</Texto>
+                        </div>
+                    </div>
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            @if (user.IsInRole("Administrador"))
+                            {
+                                <div class="custom-control custom-switch">
+                                    <input class="custom-control-input" id="customSwitch1" type="checkbox" @onchange="e => CheckChanged(e)">
+                                    <label class="custom-control-label" for="customSwitch1">Inactivos</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </CardHeader>
+        <CardBody Class="card-body border-top">
+            <div class="row light">
+                @foreach (var item in ListadeTemas)
+                {
+                    <div class="col-sm-6 col-lg-4 mb-4">
+                        <Card Class="card overflow-hidden" Style="width: 20rem; height: 370px;">
+                            <Card Class="card-img-top">
+                                <Enlace Class="manita" Href="@("detalles-tema/"+item.TemaId)">
+                                    <Imagen Class="img-fluidcustom" Src="@item.Imagen" alt="Card image cap" />
+                                </Enlace>
+                            </Card>
+                            <CardBody Class="card-body">
+                                <Texto Typo="Typo.h5" Class="card-title">@item.NombreCortado</Texto>
+                                <Texto Typo="Typo.body2" Class="card-text">
+                                    @item.DescripcionCortada
+                                </Texto>
+                                @if (user.IsInRole("Administrador"))
+                                {
+                                    <Enlace Class="btn p-0" Href="@("editar-tema/" + item.TemaId)" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar">
+                                        <Icono Icon="text-500 fas fa-edit" />
+                                    </Enlace>
+                                    <BotonIcono Class="btn p-0 ms-2" ButtonType="ButtonType.Button" data-bs-toggle="tooltip" data-bs-placement="top" title="Borrar" Icon="text-500 fas fa-trash-alt" @onclick="@(() => Desactivar(item))" />                                   
+                                }
+                            </CardBody>
+                        </Card>
+                    </div>
+                }
+            </div>
+        </CardBody>
+        <CardFooter Class="card-footer border-top d-flex justify-content-center bg-transparent">
+            <Paginacion PaginaActual="paginaActual" PaginaSeleccionada="paginaSeleccionada" PaginasTotales="paginasTotales" />
+        </CardFooter>
+    </Card>
+    <br />
+}
+
+@code {
+    ClaimsPrincipal user;
+    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Parameter] public int CursoId { get; set; }
+    private bool Procesando = true;
+
+    private Curso Curso;
+    public List<Tema> ListadeTemas { get; set; }
+
+    private int paginaActual = 1;
+    private int paginasTotales;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        user = authState.User;
+
+        await Cargar();
+        await CargarTemas();
+    }
+
+    private async Task paginaSeleccionada(int pagina)
+    {
+        paginaActual = pagina;
+        await CargarTemas(pagina);
+    }
+
+    private async Task CargarTemas(int pagina = 1)
+    {
+        var responseHttp = await repositorio.Get<PaginadorGenerico<Tema>>($"api/Tema/Listado/{CursoId}?pagina={pagina}");
+        if (!responseHttp.Error)
+        {
+            var resultado = responseHttp.Response.Resultado;
+
+            paginaActual = responseHttp.Response.PaginaActual;
+            paginasTotales = responseHttp.Response.TotalPaginas;
+
+            ListadeTemas = (List<Tema>)resultado;
+        }
+    }
+
+    private async Task Cargar()
+    {
+        var responseHttp = await repositorio.Get<Curso>($"api/Curso/{CursoId}");
+        if (responseHttp.Error)
+        {
+            if (responseHttp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                navigationManager.NavigateTo("");
+            }
+            else
+            {
+                var mensajeError = await responseHttp.GetBody();
+                await mostrarMensajes.MostrarMensajeError(mensajeError);
+            }
+        }
+        else
+        {
+            Curso = responseHttp.Response;
+            Procesando = false;
+        }
+    }
+
+    #region BorrarTema
+    public async Task Desactivar(Tema tema)
+    {
+        string mensajeconfirmacion = $"¿Desea borrar este tema: {tema.Nombre}?";
+        var confirmado = await JS.Confirm("Confirmar", mensajeconfirmacion, IJSRuntimeExtensionMethods.TipoMensajeSweetAlert.question);
+        if (confirmado)
+        {
+            tema.Activo = false;
+            var httpResponse = await repositorio.Put("api/Tema/Desactivar", tema);
+            if (httpResponse.Error)
+            {
+                await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+            }
+            else
+            {
+                navigationManager.NavigateTo($"detalles-curso/{tema.CursoId}");
+                await Cargar();
+                await CargarTemas();
+            }
+        }
+    }
+    #endregion  
+
+    #region FiltroActivos
+
+    private Boolean Activos = false;
+    private async Task CheckChanged(ChangeEventArgs ev)
+    {
+        Activos = (Boolean)ev.Value;
+        var responseHttp = await repositorio.Get<PaginadorGenerico<Tema>>($"api/Tema/FiltroActivos?filtro={Activos}");
+        var resultado = responseHttp.Response.Resultado;
+        ListadeTemas = (List<Tema>)resultado;
+    }
+
+    #endregion
+}

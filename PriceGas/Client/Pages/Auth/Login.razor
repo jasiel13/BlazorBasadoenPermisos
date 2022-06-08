@@ -1,0 +1,337 @@
+﻿@layout CenteredCardLayout
+@page "/"
+@inject IRepositorio repositorio
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject IMostrarMensaje mostrarMensajes
+@inject IJSRuntime JS
+@using BlazorAnimate
+
+<!-- Navbar & Hero Start -->
+<div class="container-xxl position-relative p-0" id="home">
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <Animate Animation="Animations.FlipUp" Duration="TimeSpan.FromSeconds(0.5)" @ref="logo" IsManual="false">
+            <a href="/" class="navbar-brand p-0">
+                @*<h1 class="m-0">PriceGas</h1>*@
+                <img src="Img/logo_pricegas.png" alt="Logo">
+            </a>
+        </Animate>       
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+            <span class="fa fa-bars"></span>
+        </button>
+        <div id="navbarCollapse" class="@NavMenuCssClass navbar-collapse" @onclick="CollapseNavMenu">
+            <div class="navbar-nav mx-auto py-0">
+                <a href="#home" class="nav-item nav-link active">Inicio</a>
+                <a href="#curso" class="nav-item nav-link active">Cursos</a>
+                <a href="#contact" class="nav-item nav-link active">Contacto</a>
+            </div>
+            <span class="btn btn-primary-gradient rounded-pill py-2 px-4 ms-3 d-none d-lg-block" @onclick="@(() => OpenModal())">Iniciar Sesión</span>
+        </div>
+    </nav>
+
+    <div class="container-xxl bg-primary hero-header">
+        <div class="container px-lg-5">
+            <div class="row g-5">
+                <div class="col-lg-8 text-center text-lg-start paddingtextprincipal">
+                    <Animate Animation="Animations.SlideDown" Duration="TimeSpan.FromSeconds(0.5)" @ref="titulo" IsManual="false">
+                        <h1 class="text-white mb-4">Adquiere y mejora tus habilidades para trabajar con nosotros</h1>
+                        <p class="text-white pb-3">
+                            Desarrollate profesionalmente, aumentando los conocimientos en tu área de trabajo.
+                        </p>
+                    </Animate>
+                    <Animate Animation="Animations.SlideLeft" Duration="TimeSpan.FromSeconds(0.5)" @ref="botonesinicio" IsManual="false">
+                        <a href="" class="btn btn-primary-gradient py-sm-3 px-4 px-sm-5 rounded-pill me-3">Leer Más</a>
+                        <a href="" class="btn btn-secondary-gradient py-sm-3 px-4 px-sm-5 rounded-pill">Contáctanos</a>
+                    </Animate>
+                </div>
+                <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.3)" @ref="carrusel" IsManual="false" class="col-lg-4 d-flex justify-content-center justify-content-lg-end marginimgprincipal">
+                    <div class="swiper">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <img class="img-fluid" src="Img/fondo.png" alt="">
+                            </div>
+                            <div class="swiper-slide">
+                                <img class="img-fluid" src="Img/fondo2.png" alt="">
+                            </div>
+                            <div class="swiper-slide">
+                                <img class="img-fluid" src="Img/fondo3.png" alt="">
+                            </div>
+                        </div>
+                        <div class="swiper-nav">
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+                </Animate>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Navbar & Hero End -->
+<!-- About Start -->
+<div class="container-xxl py-5" id="curso">
+    <div class="container py-5 px-lg-5">
+        <div class="row g-5 align-items-center">
+            <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.3)" @ref="acerca" IsManual="false" class="col-lg-6">
+                <h5 class="text-primary-gradient fw-medium">Cursos On-Line</h5>
+                <h1 class="mb-4" style="font-size: 2.3rem;">¡Aprende en todo momento!</h1>
+                <p class="mb-4">
+                    El desarrollo de nuestra empresa se sustenta en el crecimiento de todo nuestro personal, capacitamos para ser los mejores en lo que hacemos...
+                </p>
+                <div class="row g-4 mb-4">
+                    <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" @ref="acercadiv" IsManual="false" class="col-sm-6">
+                        <div class="d-flex">
+                            <i class="fas fa-video fa-2x text-primary-gradient flex-shrink-0 mt-1"></i>
+                            <div class="ms-3">
+                                <h2 class="mb-0" id="counter2" data-purecounter-start="0" data-purecounter-end="12"></h2>
+                                <p class="text-primary-gradient mb-0">Cursos</p>
+                            </div>
+                        </div>
+                    </Animate>
+                </div>
+            </Animate>
+            <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.5)" @ref="acercaimg" IsManual="false" class="col-lg-6">
+                <img class="img-fluid" src="Img/students.jpg">
+            </Animate>
+        </div>
+    </div>
+</div>
+<!-- About End -->
+<!-- Process Start -->
+<div class="container-xxl py-5">
+    <div class="container py-5 px-lg-5">
+        <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.1)" @ref="process" IsManual="false" class="text-center pb-4">
+            <h5 class="text-primary-gradient fw-medium">Cómo Funciona</h5>
+            <h1 class="mb-5">3 Sencillos Pasos</h1>
+        </Animate>
+        <div class="row gy-5 gx-4 justify-content-center">
+            <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.2)" @ref="textocursos" IsManual="false" class="col-lg-4 col-sm-6 text-center pt-4">
+                <div class="position-relative bg-lightlanding rounded pt-5 pb-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary-gradient rounded-circle position-absolute top-0 start-50 translate-middle shadow" style="width: 100px; height: 100px;">
+                        <i class="fas fa-file-video fa-3x text-white"></i>
+                    </div>
+                    <h5 class="mt-4 mb-3">Cursos</h5>
+                    <p class="mb-0">
+                        Fortalece habilidades, construye nuevos conocimientos, eleva tu desempeño, aprende online con cursos efectivos.
+                    </p>
+                </div>
+            </Animate>
+            <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.3)" @ref="textoquiz" IsManual="false" class="col-lg-4 col-sm-6 text-center pt-4">
+                <div class="position-relative bg-lightlanding rounded pt-5 pb-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-secondary-gradient rounded-circle position-absolute top-0 start-50 translate-middle shadow" style="width: 100px; height: 100px;">
+                        <i class="fas fa-question fa-3x text-white"></i>
+                    </div>
+                    <h5 class="mt-4 mb-3">Quiz</h5>
+                    <p class="mb-0">                       
+                        Mejora tu desempeño poniendo en práctica lo que aprendes, con pequeños cuestionarios y logra resultados rápidos.
+                    </p>
+                </div>
+            </Animate>
+            <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.5)" @ref="textoinfo" IsManual="false" class="col-lg-4 col-sm-6 text-center pt-4">
+                <div class="position-relative bg-lightlanding rounded pt-5 pb-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary-gradient rounded-circle position-absolute top-0 start-50 translate-middle shadow" style="width: 100px; height: 100px;">
+                        <i class="fas fa-newspaper fa-3x text-white"></i>
+                    </div>
+                    <h5 class="mt-4 mb-3">Información</h5>
+                    <p class="mb-0">
+                        Por medio de la capacitación, se busca mejorar conocimientos, habilidades, actitudes y conductas de nuestros colaboradores.
+                    </p>
+                </div>
+            </Animate>
+        </div>
+    </div>
+</div>
+<!-- Process Start -->
+<!-- Footer Start -->
+<Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.3)" @ref="footer" IsManual="false" class="container-fluid bg-primary text-light footer" id="contact">
+    <div class="container py-5 px-lg-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-3">
+                <h4 class="text-white mb-4">Siguenos en redes</h4>
+                @*<p><i class="fa fa-map-marker-alt me-3"></i>  Calle J. F. Brittingham #184 Cd. Industrial, Torreón, Coah.</p>
+                <p><i class="fa fa-phone-alt me-3"></i>871 750 7171</p>
+                <p><i class="fa fa-envelope me-3"></i>innovacion2@gasamigas.com</p>*@
+                <div class="d-flex pt-2">
+                    <a class="btn btn-outline-light btn-social" href="https://twitter.com/grupo_simsa" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a class="btn btn-outline-light btn-social" href="https://es-la.facebook.com/GrupoSimsaMexico/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a class="btn btn-outline-light btn-social" href="https://www.instagram.com/migasolina/?hl=es" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in" target="_blank"></i></a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <h4 class="text-white mb-4">Enlace Rápido</h4>               
+                <a class="btn btn-link" href="#home" style="text-decoration:none">Inicio</a>
+                <a class="btn btn-link" href="#curso" style="text-decoration:none">Cursos</a>
+                <a class="btn btn-link" href="#contact" style="text-decoration:none">Contáctanos</a>
+            </div>
+        </div>
+    </div>
+    <div class="container px-lg-5">
+        <div class="copyright">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    &copy; <span class="border-bottom">Price Gas Capacitate</span>, All Right Reserved.
+
+                    <!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+                    Designed By <span class="border-bottom">Innovación</span>
+                    <br>
+                    Distributed By <span class="border-bottom">Simsa</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</Animate>
+<!-- Footer End -->
+<!-- Back to Top -->
+<span class="btn btn-lg btn-lg-square back-to-top"><i class="fas fa-long-arrow-alt-up text-white"></i></span>
+
+@if (isModal)
+{
+    <div class="modal show" id="authentication-modal" tabindex="-1" role="dialog" aria-labelledby="authentication-modal-label" aria-modal="true" style="display:block; padding-left: 0px; background-color: rgba(10,10,10,.8);">
+        <div class="modal-dialog mt-6" role="document">
+            <div class="modal-content border-0">
+                <div class="modal-header px-5 position-relative modal-shape-header bg-shape" style="background-color:#045fa8;">
+                    <div class="position-relative z-index-1 light">
+                        <h4 class="mb-0 text-white" id="authentication-modal-label">Iniciar Sesión</h4>
+                        <p class="fs--1 mb-0 text-white">¡Bienvenido!</p>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="closeModal">
+                        <span class="font-weight-light text-white" aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 px-5">
+                    <EditForm Model="@userInfoLogin" OnValidSubmit="LoginUsuario">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <InputLabel for="usuario">Usuario:</InputLabel>
+                            <InputText class="form-control form-control-sm" placeholder="Usuario" @bind-Value="@userInfoLogin.Usuario" />
+                            <ValidationMessage For="@(() => userInfoLogin.Usuario)" />
+                        </div>
+                        <div class="mb-3">
+                            <InputLabel for="password">Contraseña:</InputLabel>
+                            <InputPassword class="form-control form-control-sm" PlaceHolder="Contraseña" @bind-Value="@userInfoLogin.Password" />
+                            <ValidationMessage For="@(() => userInfoLogin.Password)" />
+                        </div>
+                        <Divisor />
+                        <div class="mb-3">
+                            <Boton ButtonType="ButtonType.Submit" Class="btn btn-danger btn-sm d-block w-100 mt-3">Inicio de Sesión</Boton>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code{
+
+    #region Animacion
+
+    private Animate acerca;
+    private Animate acercaimg;
+    private Animate acercadiv;
+    private Animate process;
+    private Animate textocursos;
+    private Animate textoquiz;
+    private Animate textoinfo;
+    private Animate footer;
+    private Animate titulo;
+    private Animate botonesinicio;
+    private Animate carrusel;
+    private Animate logo;
+
+    protected void OnInitialized()
+    {
+        acerca.Run();
+        acercaimg.Run();
+        acercadiv.Run();
+        process.Run();
+        textocursos.Run();
+        textoquiz.Run();
+        textoinfo.Run();
+        footer.Run();
+        botonesinicio.Run();
+        titulo.Run();
+        carrusel.Run();
+        logo.Run();
+    }
+
+    #endregion
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("PureCounter");
+            firstRender = false;
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("StarCarousel2");
+            firstRender = false;
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("AnimacionNavBar");
+            firstRender = false;
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("BotonUP");
+            firstRender = false;
+            StateHasChanged();
+        }
+    }
+
+    #region Modal
+    private Boolean isModal = false;
+
+    //subir archivo
+    private async Task OpenModal()
+    {
+        this.isModal = true;
+    }
+
+    private async void closeModal()
+    {
+        this.isModal = false;
+        StateHasChanged();
+    }
+
+    #endregion
+
+    #region Login
+
+    private UserInfoLogin userInfoLogin = new UserInfoLogin();
+
+    private async Task LoginUsuario()
+    {
+        var httpResponse = await repositorio.Post<UserInfoLogin, UserToken>("api/Cuentas/Login", userInfoLogin);
+
+        if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            await loginService.Login(httpResponse.Response.Token);
+            navigationManager.NavigateTo("inicio");
+        }
+    }
+
+    #endregion
+
+    #region ColapsarMenu
+
+    bool collapseNavMenu = true;
+
+    string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    void CollapseNavMenu()
+    {
+        collapseNavMenu = true;
+    }
+
+    #endregion
+}

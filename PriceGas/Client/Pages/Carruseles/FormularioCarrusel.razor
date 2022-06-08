@@ -1,0 +1,56 @@
+﻿@inject IRepositorio repositorio
+@using System.Security.Claims
+
+<EditForm Model="@Carrusel" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <Card Class="card mb-3">
+        <CardHeader Class="card-header">
+            <div class="row">
+                <div class="col">
+                    <Texto Typo="Typo.h5" Class="mb-0">@Titulo</Texto><br>
+                </div>               
+            </div>
+        </CardHeader>
+        <CardBody Class="card-body border-top">
+            <div class="form-row">               
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputImg ImagenSeleccionada="ImagenSeleccionada" ImagenURL="@imagenURL" />
+                    </div>
+                </div>
+            </div>
+        </CardBody>
+        <CardFooter Class="card-footer border-top text-right bg-transparent">
+            <Boton Class="btn btn-secondary btn-sm mr-2" ButtonType="ButtonType.Submit"><Icono Icon="fas fa-check fs--2 mr-1"></Icono>Guardar</Boton>
+        </CardFooter>
+    </Card>
+</EditForm>
+
+@code{ 
+
+    [Parameter] public Carrusel Carrusel { get; set; }
+    [Parameter] public bool Es_EditarCarrusel { get; set; }
+    [Parameter] public string Titulo { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    private string imagenURL;
+
+    protected async override Task OnInitializedAsync()
+    {
+        //sino hay imagen no hacemos nada, pero si hay imagen la guardamos en la variable imagenUrl
+        if (!string.IsNullOrWhiteSpace(Carrusel.Imagen))
+        {
+            imagenURL = Carrusel.Imagen;
+            Carrusel.Imagen = null;//volvemos null la imagen que ya tenia, si el usuario no cambia la imagen nunca, entonces nunca la enviamos
+        }
+    }
+
+    //este metodo actualiza la imagen con la nueva imagen seleccionada
+    private void ImagenSeleccionada(string imagenBase64)
+    {
+        Carrusel.Imagen = imagenBase64;
+        imagenURL = null;
+    }
+}
+

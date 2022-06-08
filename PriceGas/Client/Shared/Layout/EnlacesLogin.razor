@@ -1,0 +1,17 @@
+﻿<AuthorizeView>
+    <Authorized>
+        <DropDown TItem="string" Class="btn btn-falcon-default btn-sm ml-2 dropdown-caret-none">
+            <InitialTip>
+                <Texto Typo="Typo.normal" Class="text-white">@context.User.Identity.Name</Texto>
+                <Icono Icon="fas fa-user fa-fw" Style="color:white"></Icono>
+            </InitialTip>
+            <ChildContent>      
+                <DropDownListLink Href="logout" Nombre="Logout"><Icono Icon="oi oi-account-login"/></DropDownListLink>
+            </ChildContent>
+        </DropDown>
+    </Authorized>
+    @*<NotAuthorized>
+        <a href="registro">Registro</a>
+        <a href="login" class="nav-link btn btn-link">Login</a>
+    </NotAuthorized>*@
+</AuthorizeView>

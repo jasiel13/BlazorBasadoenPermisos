@@ -1,0 +1,200 @@
+﻿@page "/inicio"
+@inject IRepositorio repositorio
+@inject IMostrarMensaje mostrarMensajes
+@inject IJSRuntime JS
+@inject NavigationManager navigationManager
+@using System.Security.Claims
+@attribute [Authorize(Roles = "Administrador,Usuario")]
+
+@*<Card Class="card mb-3">
+        <CardMedia Class="bg-holder d-none d-lg-block bg-card" Image="Img/corner-4.png"></CardMedia>
+        <CardBody Class="card-body position-relative">
+            <div class="row">
+                <div class="col-lg-8">
+                    <Texto Typo="Typo.h3" Style="color:#045fa8;">Hola, @Nombre!</Texto>
+                    <Texto Typo="Typo.body2" Class="mt-2">
+                        Aprender un poco cada día marca la diferencia. Hay estudios que muestran que los estudiantes que hacen del aprendizaje un hábito tienen una mayor probabilidad de alcanzar sus objetivos. Reserva tiempo para aprender y recibe recordatorios con la herramienta de planificación del aprendizaje.
+                    </Texto>
+                    <div class="pe-3">
+                        <Texto Typo="Typo.body2" Class="text-600 fs--1 fw-medium">Total de cursos disponibles</Texto>
+                        <Texto Typo="Typo.h4" Class="text-800 mb-0">
+                            @if (ListadeCursos != null)
+                            {
+                              <Texto Typo="Typo.normal" Style="color:#045fa8;">@TotaldeCursos</Texto>
+                            }
+                        </Texto>
+                    </div>
+                </div>
+            </div>
+        </CardBody>
+    </Card>*@
+
+<div class="swiper" style="height:300px; width:100%;">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide">
+            <img class="rounded-1 img-fluid" src="Img/CP1.png" alt="" />
+        </div>
+        <div class="swiper-slide">
+            <img class="rounded-1 img-fluid" src="Img/CP2.png" alt="" />
+        </div>
+        <div class="swiper-slide">
+            <img class="rounded-1 img-fluid" src="Img/CP3.png" alt="" />
+        </div>
+        <div class="swiper-slide">
+            <img class="rounded-1 img-fluid" src="Img/CP4.png" alt="" />
+        </div>
+        <div class="swiper-slide">
+            <img class="rounded-1 img-fluid" src="Img/CP5.png" alt="" />
+        </div>
+    </div>
+    <div class="swiper-nav">
+        <div class="swiper-pagination"></div>
+    </div>
+</div>
+
+<br />
+
+@if (ListadeCursos == null)
+{
+    <LoadingSpinner IsLoading="Procesando" />
+}
+else
+{
+    @if (ListadeCursos.Count > 0)
+    {
+        <Card Class="card mb-3 border-0">
+            <CardHeader Class="card-header bg-transparent border-0">
+                <div class="row justify-content-between align-items-center">
+                    <div class="col-sm-auto">
+                        <div class="d-inline-block mr-3">
+                            <div class="input-group input-group-sm d-flex align-items-center">
+                                <Texto Typo="Typo.h3" Class="mb-0">¡Cursos Disponibles!</Texto>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardBody Class="card-body border-0">
+                <div class="row light">
+                    @foreach (var item in ListadeCursos)
+                    {
+                    <div class="col-sm-6 col-lg-4 mb-4">
+                        <Card Class="card overflow-hidden" style="width: 20rem; height: 370px;">
+                            <Card Class="card-img-top">
+                                <Enlace Class="manita" Href="@("detalles-curso/"+item.CursoId)">
+                                    <Imagen Class="img-fluidcustom" Src="@item.Imagen" alt="Card image cap" />
+                                </Enlace>
+                            </Card>
+                            <CardBody Class="card-body">
+                                <Texto Typo="Typo.body2" Class="card-title">@item.NombreCortado</Texto>
+                                <Texto Typo="Typo.body2" Class="card-text">
+                                    @item.DescripcionCortada
+                                </Texto>
+                            </CardBody>
+                        </Card>
+                    </div>
+                    }
+                </div>
+            </CardBody>
+            <CardFooter Class="card-footer border-0 d-flex justify-content-center bg-transparent">
+                <Paginacion PaginaActual="paginaActual" PaginaSeleccionada="paginaSeleccionada" PaginasTotales="paginasTotales" />
+            </CardFooter>
+        </Card>
+        <br />
+    }
+}
+
+@code{
+
+    string Nombre = "";
+    private bool Procesando = true;
+    private Animate cardcurso;
+
+    ClaimsPrincipal user;
+    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+        //await CargarCarrusel();
+
+        var authState = await authenticationStateTask;
+        user = authState.User;
+
+        //if (user.Identity.IsAuthenticated)
+        //{
+        //    Nombre = ($"{user.FindFirst(x => x.Type == ClaimTypes.Name)?.Value}");
+        //}
+
+        if (user.IsInRole("Usuario"))
+        {
+            //esto se puso para desactivar el clic derecho en toda la pagina
+            await JS.InvokeVoidAsync("BloquearBotonDerecho");
+            StateHasChanged();
+        }
+    }
+
+    protected void OnInitialized()
+    {
+        cardcurso.Run();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("StarCarousel");
+            firstRender = false;
+            StateHasChanged();
+        }
+    }
+
+    #region CargarCursos
+
+    public List<Curso> ListadeCursos { get; set; }
+
+    private int paginaActual = 1;
+    private int paginasTotales;
+
+    public int TotaldeCursos;
+
+    private async Task paginaSeleccionada(int pagina)
+    {
+        paginaActual = pagina;
+        await Cargar(pagina);
+    }
+
+    private async Task Cargar(int pagina = 1)
+    {
+        var responseHttp = await repositorio.Get<List<Curso>>($"api/Curso?pagina={pagina}");
+        if (!responseHttp.Error)
+        {
+            ListadeCursos = responseHttp.Response;
+            TotaldeCursos = ListadeCursos.Count;
+            Procesando = false;
+
+            var conteo = responseHttp.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault();
+            paginasTotales = int.Parse(responseHttp.HttpResponseMessage.Headers.GetValues("totalPaginas").FirstOrDefault());
+        }
+    }
+
+    #endregion
+
+    //#region CargarCarrusel
+
+    //public List<Carrusel> ListadeCarrusel { get; set; }
+
+    //private async Task CargarCarrusel()
+    //{
+    //    var responseHttp = await repositorio.Get<List<Carrusel>>("api/Carrusel");
+    //    if (!responseHttp.Error)
+    //    {
+    //        ListadeCarrusel = responseHttp.Response;
+    //    }
+    //}
+
+    //#endregion
+}
+
+
+

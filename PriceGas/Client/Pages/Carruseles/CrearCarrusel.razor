@@ -1,0 +1,27 @@
+﻿@page "/crear-carrusel"
+@inject IRepositorio repositorio
+@inject NavigationManager navigationManager
+@inject IMostrarMensaje mostrarMensajes
+@attribute [Authorize(Roles = "Administrador")]
+
+<FormularioCarrusel OnValidSubmit="Crear" Carrusel="Carrusel" Titulo="Crear Carrusel" />
+
+@code {
+    private Carrusel Carrusel = new Carrusel();
+
+    async Task Crear()
+    {
+        var httpResponse = await repositorio.Post("api/Carrusel", Carrusel);
+        @if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            await mostrarMensajes.MostrarMensajeExitoso("Carrusel Creado");
+            navigationManager.NavigateTo("indice-cursos");
+        }
+    }
+}
+
+

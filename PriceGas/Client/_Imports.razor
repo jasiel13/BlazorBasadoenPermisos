@@ -1,0 +1,83 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Globalization;
+@using System.IO;
+
+@*using de microsoft*@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+
+@*using del cliente*@
+@using Client.Repositorios
+@using Client.Helpers
+@using PriceGas.Client
+@using PriceGas.Client.Shared
+@using PriceGas.Client.Auth
+@using PriceGas.Client.Shared.Layout
+@using PriceGas.Client.Service
+
+@*using del componentes*@
+@using PriceGas.Client.ComponentesGenericos
+@using PriceGas.Client.ComponentesGenericos.Dropdown
+@using PriceGas.Client.ComponentesGenericos.Base
+@using PriceGas.Client.ComponentesGenericos.Cards
+@using PriceGas.Client.ComponentesGenericos.Tipografia
+@using PriceGas.Client.ComponentesGenericos.Enum
+@using PriceGas.Client.ComponentesGenericos.Link
+@using PriceGas.Client.ComponentesGenericos.Icono
+@using PriceGas.Client.ComponentesGenericos.Boton
+@using PriceGas.Client.ComponentesGenericos.Divisor
+@using PriceGas.Client.ComponentesGenericos.Elemento
+@using PriceGas.Client.ComponentesGenericos.Tabla
+@using PriceGas.Client.ComponentesGenericos.Paginador
+@using PriceGas.Client.ComponentesGenericos.Inputs
+@using PriceGas.Client.ComponentesGenericos.Loading
+@using PriceGas.Client.ComponentesGenericos.Listado
+@using PriceGas.Client.ComponentesGenericos.ModalContent
+@using PriceGas.Client.ComponentesGenericos.Avatar
+@using PriceGas.Client.ComponentesGenericos.Chips
+@using PriceGas.Client.ComponentesGenericos.TarjetaIndicador
+@using PriceGas.Client.ComponentesGenericos.ListGroup
+@using PriceGas.Client.ComponentesGenericos.ToDoList
+@using PriceGas.Client.ComponentesGenericos.Grafico
+@using PriceGas.Client.ComponentesGenericos.CasillaVerificacion
+@using PriceGas.Client.ComponentesGenericos.Cards.CardDoble
+@using PriceGas.Client.ComponentesGenericos.SelectorMultiple
+@using PriceGas.Client.ComponentesGenericos.Imagen
+@using PriceGas.Client.ComponentesGenericos.SubirArchivo
+@using PriceGas.Client.ComponentesGenericos.TarjetaMenu
+@using PriceGas.Client.ComponentesGenericos.SelectorEnum
+@using PriceGas.Client.ComponentesGenericos.BlazoredTypeahead
+@using PriceGas.Client.ComponentesGenericos.IFrame
+@using PriceGas.Client.ComponentesGenericos.ToolTip
+@using PriceGas.Client.ComponentesGenericos.TabControl
+@using PriceGas.Client.ComponentesGenericos.SubirArchivo
+@using PriceGas.Client.ComponentesGenericos.ToggleMenuBoton
+
+@*using del shared*@
+@using PriceGas.Shared.Entidades
+@using PriceGas.Shared.Entidades.Cursos
+@using PriceGas.Shared.DTOs
+
+@*using de terceros*@
+@using BlazorInputFile
+@using NEvaldas.Blazor.Select2
+@using ChartJs.Blazor
+@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Axes
+@using ChartJs.Blazor.Common.Axes.Ticks
+@using ChartJs.Blazor.Common.Enums
+@using ChartJs.Blazor.Common.Handlers
+@using ChartJs.Blazor.Common.Time
+@using ChartJs.Blazor.Util
+@using ChartJs.Blazor.Interop
+@using BlazorAnimate 
+
+
+
