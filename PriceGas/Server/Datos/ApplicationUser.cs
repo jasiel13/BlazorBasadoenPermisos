@@ -10,6 +10,7 @@ namespace PriceGas.Server.Datos
     {     
         public TipodeUsuario TipodeUsuarios { get; set; }
         public bool Activo { get; set; }
+        public string ContraseñaTextoPlano { get; set; }//poder ver la contraseña sin hash
 
         //aqui podemos agregar mas campos para el usuario identity
         public enum TipodeUsuario

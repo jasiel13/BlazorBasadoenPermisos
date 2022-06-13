@@ -45,6 +45,7 @@ namespace PriceGas.Server.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     TipodeUsuarios = table.Column<int>(type: "int", nullable: false),
                     Activo = table.Column<bool>(type: "bit", nullable: false),
+                    ContraseñaTextoPlano = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -313,12 +314,12 @@ namespace PriceGas.Server.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "54202d5b-deb1-417d-a05e-5b2d8fe48e4d", "77c764f7-6bd3-421d-99fd-f9247791ffd2", "Administrador", "Administrador" });
+                values: new object[] { "54202d5b-deb1-417d-a05e-5b2d8fe48e4d", "c778241b-b38a-453f-a458-2b788428f744", "Administrador", "Administrador" });
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "06a0e103-5645-40dd-b94c-044d6573821c", "d082c8f5-6827-4a7e-bd3e-d29ac9a188ae", "Usuario", "Usuario" });
+                values: new object[] { "06a0e103-5645-40dd-b94c-044d6573821c", "8a51876b-7949-4267-867c-833635620621", "Usuario", "Usuario" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",

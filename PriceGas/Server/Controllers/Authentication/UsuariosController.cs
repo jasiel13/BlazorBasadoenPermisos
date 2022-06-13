@@ -41,7 +41,7 @@ namespace PriceGas.Server.Controllers
             var queryable = context.Users.Where(x => x.Activo == true).AsQueryable();
             await HttpContext.InsertarParametrosPaginacionEnRespuesta(queryable, paginacion.CantidadRegistros);
             return await queryable.Paginar(paginacion)
-            .Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id }).ToListAsync();//hacemos un mapeo hacia usuariodto          
+            .Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id, Contraseña = x.ContraseñaTextoPlano }).ToListAsync();//hacemos un mapeo hacia usuariodto          
         }       
 
         //con esta peticion traemos el listado de roles desde la bd

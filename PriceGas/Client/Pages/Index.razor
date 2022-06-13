@@ -54,6 +54,24 @@
 
 <br />
 
+@*@if (ListadeCarrusel != null)
+{
+    <h1>hola</h1>
+    <div class="swiper" style="height:300px; width:100%;">
+        <div class="swiper-wrapper">
+            @foreach (var item in ListadeCarrusel)
+            {
+                <div class="swiper-slide">
+                    <img class="rounded-1 img-fluid" src="@item.Imagen" alt="" />
+                </div>
+            }
+        </div>
+        <div class="swiper-nav">
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+}*@
+
 @if (ListadeCursos == null)
 {
     <LoadingSpinner IsLoading="Procesando" />
@@ -78,21 +96,21 @@ else
                 <div class="row light">
                     @foreach (var item in ListadeCursos)
                     {
-                    <div class="col-sm-6 col-lg-4 mb-4">
-                        <Card Class="card overflow-hidden" style="width: 20rem; height: 370px;">
-                            <Card Class="card-img-top">
-                                <Enlace Class="manita" Href="@("detalles-curso/"+item.CursoId)">
-                                    <Imagen Class="img-fluidcustom" Src="@item.Imagen" alt="Card image cap" />
-                                </Enlace>
+                        <div class="col-sm-6 col-lg-4 mb-4">
+                            <Card Class="card overflow-hidden" style="width: 20rem; height: 370px;">
+                                <Card Class="card-img-top">
+                                    <Enlace Class="manita" Href="@("detalles-curso/"+item.CursoId)">
+                                        <Imagen Class="img-fluidcustom" Src="@item.Imagen" alt="Card image cap" />
+                                    </Enlace>
+                                </Card>
+                                <CardBody Class="card-body">
+                                    <Texto Typo="Typo.body2" Class="card-title">@item.NombreCortado</Texto>
+                                    <Texto Typo="Typo.body2" Class="card-text">
+                                        @item.DescripcionCortada
+                                    </Texto>
+                                </CardBody>
                             </Card>
-                            <CardBody Class="card-body">
-                                <Texto Typo="Typo.body2" Class="card-title">@item.NombreCortado</Texto>
-                                <Texto Typo="Typo.body2" Class="card-text">
-                                    @item.DescripcionCortada
-                                </Texto>
-                            </CardBody>
-                        </Card>
-                    </div>
+                        </div>
                     }
                 </div>
             </CardBody>

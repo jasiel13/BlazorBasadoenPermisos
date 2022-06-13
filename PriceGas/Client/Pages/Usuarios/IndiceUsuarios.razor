@@ -41,6 +41,10 @@
                     <thead class="text-center">
                         <tr>
                             <th>Usuario</th>
+                            @if (user.IsInRole("Administrador"))
+                            {
+                               <th>Contraseña</th>
+                            }
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -51,6 +55,12 @@
                                 <td>
                                     @usuario.Usuario
                                 </td>
+                                @if (user.IsInRole("Administrador"))
+                                {
+                                    <td>
+                                        @usuario.Contraseña
+                                    </td>
+                                }
                                 <td>
                                     <Enlace Class="btn p-0" Href=@("editar-usuario/"+usuario.UserId) data-bs-toggle="tooltip" data-bs-placement="top" title="Editar">
                                         <Icono Icon="text-500 fas fa-edit" />

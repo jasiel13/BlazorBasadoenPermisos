@@ -49,14 +49,14 @@ namespace PriceGas.Server.Migrations
                         new
                         {
                             Id = "54202d5b-deb1-417d-a05e-5b2d8fe48e4d",
-                            ConcurrencyStamp = "77c764f7-6bd3-421d-99fd-f9247791ffd2",
+                            ConcurrencyStamp = "c778241b-b38a-453f-a458-2b788428f744",
                             Name = "Administrador",
                             NormalizedName = "Administrador"
                         },
                         new
                         {
                             Id = "06a0e103-5645-40dd-b94c-044d6573821c",
-                            ConcurrencyStamp = "d082c8f5-6827-4a7e-bd3e-d29ac9a188ae",
+                            ConcurrencyStamp = "8a51876b-7949-4267-867c-833635620621",
                             Name = "Usuario",
                             NormalizedName = "Usuario"
                         });
@@ -179,6 +179,9 @@ namespace PriceGas.Server.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContraseñaTextoPlano")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")

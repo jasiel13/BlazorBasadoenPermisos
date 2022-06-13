@@ -51,7 +51,8 @@ namespace PriceGas.Server.Controllers
             var user = new ApplicationUser
             {
                 UserName = model.Usuario,
-                //Email = model.Usuario,                
+                //Email = model.Usuario,
+                ContraseñaTextoPlano = model.Password,
                 Activo = true
             };         
 
@@ -161,11 +162,11 @@ namespace PriceGas.Server.Controllers
                 //creamos un token para resetear su password
                 var tokenreset = await _userManager.GeneratePasswordResetTokenAsync(usuario);
                 //pasamos al metodo de verificacion
-                await VerifyResetPassAsync(usuario.UserName,tokenreset,recoveryPassword.Password);
+                await VerifyResetPassAsync(usuario.UserName,tokenreset,recoveryPassword);
             }
             return Ok();
         }       
-        public async Task<ActionResult> VerifyResetPassAsync(string nombre, string token, string pass)
+        public async Task<ActionResult> VerifyResetPassAsync(string nombre, string token, RecoveryPassword recoveryPassword)
         {
             if (nombre == null || token == null)
                 return Content("Faltan datos para restablecer contraseña");
@@ -187,9 +188,22 @@ namespace PriceGas.Server.Controllers
                 var usuario = await _userManager.FindByNameAsync(nombre);//buscamos el usuario por su UserName
                 if (usuario != null)
                 {
-                    var resultado = await _userManager.ResetPasswordAsync(usuario,token,pass);
+                    var resultado = await _userManager.ResetPasswordAsync(usuario,token, recoveryPassword.Password);
                     if (resultado.Succeeded)
                     {
+                        //actualizar el campo contraseñatextoplano en la tabla aspnetuser cuando se restablezca la contraseña
+                        var oldUsuario = await context.Users.FindAsync(usuario.Id);
+
+                        //se tuvo que crear un nuevo objeto de ApplicationUser ya que el update solo se puede hacer entre mismos objetos
+                        //si le pasamos recoverypassword con el password nuevo tecleado, da error ya que recoverypassword es un DTO
+                        //el nuevo objeto de applicationuser lo igualamos con todo lo que trae el oldusuario, solo cambiamos el password
+                        //que es el unico campo que cambio y que nos interesa cambiar
+                        var nuevousuariosoloparaactualizar = new ApplicationUser();
+                        nuevousuariosoloparaactualizar = oldUsuario;
+                        nuevousuariosoloparaactualizar.ContraseñaTextoPlano = recoveryPassword.Password;
+                        context.Entry(oldUsuario).CurrentValues.SetValues(nuevousuariosoloparaactualizar);
+                        await context.SaveChangesAsync();
+
                         return Ok("Se reestablecio correctamente");
                     }
                     else
