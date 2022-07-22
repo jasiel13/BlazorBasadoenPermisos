@@ -29,48 +29,26 @@
         </CardBody>
     </Card>*@
 
-<div class="swiper" style="height:300px; width:100%;">
-    <div class="swiper-wrapper">
-        <div class="swiper-slide">
-            <img class="rounded-1 img-fluid" src="Img/CP1.png" alt="" />
-        </div>
-        <div class="swiper-slide">
-            <img class="rounded-1 img-fluid" src="Img/CP2.png" alt="" />
-        </div>
-        <div class="swiper-slide">
-            <img class="rounded-1 img-fluid" src="Img/CP3.png" alt="" />
-        </div>
-        <div class="swiper-slide">
-            <img class="rounded-1 img-fluid" src="Img/CP4.png" alt="" />
-        </div>
-        <div class="swiper-slide">
-            <img class="rounded-1 img-fluid" src="Img/CP5.png" alt="" />
-        </div>
-    </div>
-    <div class="swiper-nav">
-        <div class="swiper-pagination"></div>
-    </div>
-</div>
-
-<br />
-
-@*@if (ListadeCarrusel != null)
-{
-    <h1>hola</h1>
+@if(ListadeCarruseles != null && ListadeCarruseles.Count > 0)
+{    
     <div class="swiper" style="height:300px; width:100%;">
         <div class="swiper-wrapper">
-            @foreach (var item in ListadeCarrusel)
+            @foreach (var item in ListadeCarruseles)
             {
-                <div class="swiper-slide">
-                    <img class="rounded-1 img-fluid" src="@item.Imagen" alt="" />
-                </div>
+                @foreach (var imagen in item.Imagenes)
+                {
+                    <div class="swiper-slide">
+                        <img class="rounded-1 img-fluid" src="@imagen.Imagen" alt="" />
+                    </div>
+                }
             }
         </div>
         <div class="swiper-nav">
             <div class="swiper-pagination"></div>
         </div>
     </div>
-}*@
+}
+<br />
 
 @if (ListadeCursos == null)
 {
@@ -134,7 +112,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await Cargar();
-        //await CargarCarrusel();
+        await CargarCarrusel();
 
         var authState = await authenticationStateTask;
         user = authState.User;
@@ -161,6 +139,8 @@ else
     {
         if (firstRender)
         {
+            await Cargar();
+            await CargarCarrusel();
             await JS.InvokeVoidAsync("StarCarousel");
             firstRender = false;
             StateHasChanged();
@@ -198,20 +178,20 @@ else
 
     #endregion
 
-    //#region CargarCarrusel
+    #region CargarCarrusel    
 
-    //public List<Carrusel> ListadeCarrusel { get; set; }
+    public List<Carrusel> ListadeCarruseles { get; set; }
 
-    //private async Task CargarCarrusel()
-    //{
-    //    var responseHttp = await repositorio.Get<List<Carrusel>>("api/Carrusel");
-    //    if (!responseHttp.Error)
-    //    {
-    //        ListadeCarrusel = responseHttp.Response;
-    //    }
-    //}
+    private async Task CargarCarrusel()
+    {
+        var responseHttp = await repositorio.Get<List<Carrusel>>($"api/Carrusel/Mostrar/{LugardeVisualizacion.PantallaPrincipal}");
+        if (!responseHttp.Error)
+        {
+            ListadeCarruseles = responseHttp.Response;
+        }
+    }
 
-    //#endregion
+    #endregion
 }
 
 

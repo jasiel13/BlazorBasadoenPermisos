@@ -13,7 +13,9 @@ namespace PriceGas.Server.Helpers
         //atravez de los perfiles es que automaper puede definir las reglas de mapeo,creamos un constructor      
         public AutomapperPerfiles()
         {                  
-            CreateMap<Quiz, Quiz>().ForMember(x => x.Imagen, option => option.Ignore());           
+            CreateMap<Quiz, Quiz>().ForMember(x => x.Imagen, option => option.Ignore());
+
+            CreateMap<Carrusel, Carrusel>().ForMember(x => x.Imagenes, option => option.Ignore());           
         }
     }
 }

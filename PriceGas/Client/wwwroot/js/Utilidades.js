@@ -65,19 +65,13 @@ function BloquearBotonDerecho() {
 function StarCarousel() {
 
     const swiper = new Swiper('.swiper', {
-        // Optional parameters
         direction: 'horizontal',
         loop: true,
-        autoplay:true,
-        spaceBetween:5,        
-        loopedSlides:5, 
-        slideToClickedSlide: true,
-        // Navigation pagination dots
+        autoplay: true,
         pagination: {
             el: '.swiper-pagination',
         },
     });
-
 };
 
 function StarCarousel2() {

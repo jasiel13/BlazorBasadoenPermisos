@@ -81,8 +81,8 @@
                     <Animate Animation="Animations.FadeIn" Duration="TimeSpan.FromSeconds(0.5)" @ref="acercadiv" IsManual="false" class="col-sm-6">
                         <div class="d-flex">
                             <i class="fas fa-video fa-2x text-primary-gradient flex-shrink-0 mt-1"></i>
-                            <div class="ms-3">
-                                <h2 class="mb-0" id="counter2" data-purecounter-start="0" data-purecounter-end="12"></h2>
+                            <div class="ms-3">                               
+                                <h2 class="mb-0" id="counter2" data-purecounter-start="0" data-purecounter-end="@CountCursos"></h2>
                                 <p class="text-primary-gradient mb-0">Cursos</p>
                             </div>
                         </div>
@@ -261,10 +261,6 @@
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("PureCounter");
-            firstRender = false;
-            StateHasChanged();
-
             await JS.InvokeVoidAsync("StarCarousel2");
             firstRender = false;
             StateHasChanged();
@@ -331,6 +327,32 @@
     void CollapseNavMenu()
     {
         collapseNavMenu = true;
+    }
+
+    #endregion
+
+    #region CargarCursosIndicador
+
+    protected async override Task OnInitializedAsync()
+    {
+        await CargarCursos();
+    }
+
+    public List<Curso> ListadeCursos { get; set; }
+
+    public int CountCursos = 0;
+
+    private async Task CargarCursos()
+    {
+        var responseHttp = await repositorio.Get<List<Curso>>($"api/Curso/ListadeCursos");
+        if (!responseHttp.Error)
+        {
+            ListadeCursos = responseHttp.Response;
+            CountCursos = ListadeCursos.Count;
+
+            await JS.InvokeVoidAsync("PureCounter");           
+            StateHasChanged();
+        }
     }
 
     #endregion

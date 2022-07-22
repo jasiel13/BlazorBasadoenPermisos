@@ -11,12 +11,12 @@ namespace PriceGas.Client.ComponentesGenericos.CasillaVerificacion
     public partial class CasillaVerificacion<T> : SimBooleanInput<T>
     {
         protected string Classname =>
-        new CssBuilder("sim-checkbox")            
+        new CssBuilder("sim-checkbox")
           .AddClass(Class)
         .Build();
 
         protected string CheckBoxClassname =>
-        new CssBuilder("sim-button-root mud-icon-button")            
+        new CssBuilder("sim-button-root mud-icon-button")
             .AddClass($"sim-disabled", Disabled)
         .Build();
         protected string InputClass =>
@@ -41,7 +41,10 @@ namespace PriceGas.Client.ComponentesGenericos.CasillaVerificacion
         /// </summary>
         [Parameter] public RenderFragment ChildContent { get; set; }
 
-        [Parameter] public bool TriState { get; set; }       
+        [Parameter] public bool TriState { get; set; }
+
+        //controlar estado se activo o inactivo con una casilla de verificacion
+        [Parameter] public bool ManejarEstados { get; set; }
         protected override Task OnChange(ChangeEventArgs args)
         {
             Touched = true;

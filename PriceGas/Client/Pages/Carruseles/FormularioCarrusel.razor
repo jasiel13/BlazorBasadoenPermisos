@@ -3,7 +3,6 @@
 
 <EditForm Model="@Carrusel" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
-
     <Card Class="card mb-3">
         <CardHeader Class="card-header">
             <div class="row">
@@ -13,10 +12,35 @@
             </div>
         </CardHeader>
         <CardBody Class="card-body border-top">
-            <div class="form-row">               
+            <div class="form-row">
                 <div class="col-sm-4">
                     <div class="form-group">
-                        <InputImg ImagenSeleccionada="ImagenSeleccionada" ImagenURL="@imagenURL" />
+                        <InputLabel for="descripcion">Descripción</InputLabel>
+                        <InputText class="form-control form-control-sm" id="descripcion" placeholder="Descripción" @bind-Value="@Carrusel.Descripcion" />
+                        <ValidationMessage For="@(() => Carrusel.Descripcion)" />
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputLabel for="lugar">Lugar de Visualización</InputLabel>
+                        <select class="form-control form-control-sm" @bind="Carrusel.LugardeVisualizacion">
+                            @*<option value=" ">Seleccionar</option>*@
+                            @foreach (var item in Enum.GetValues(typeof(LugardeVisualizacion)).Cast<LugardeVisualizacion>())
+                            {
+                                <option value="@item.ToString()">@item.GetDescription()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <InputLabel for="mostrar">Mostrar?</InputLabel><br />
+                        <CasillaVerificacion @bind-Checked="@Carrusel.Mostrar"/>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <InputMultiplesImg ImagenesSeleccionadas="ImagenesSeleccionadas" ImagenesURL="@listadeimagenesURL" />
                     </div>
                 </div>
             </div>
@@ -34,23 +58,51 @@
     [Parameter] public string Titulo { get; set; }
     [Parameter] public EventCallback OnValidSubmit { get; set; }
 
+    public List<ImagenesCarrusel> listadeimagenes = new List<ImagenesCarrusel>();
+
+    //para editar
     private string imagenURL;
+    public List<string> listadeimagenesURL = new List<string>();
 
     protected async override Task OnInitializedAsync()
     {
-        //sino hay imagen no hacemos nada, pero si hay imagen la guardamos en la variable imagenUrl
-        if (!string.IsNullOrWhiteSpace(Carrusel.Imagen))
+        if (Carrusel.Imagenes != null && Carrusel.Imagenes.Count > 0)
         {
-            imagenURL = Carrusel.Imagen;
-            Carrusel.Imagen = null;//volvemos null la imagen que ya tenia, si el usuario no cambia la imagen nunca, entonces nunca la enviamos
+            foreach (var item in Carrusel.Imagenes)
+            {
+                //sino hay imagen no hacemos nada, pero si hay imagen la guardamos en la variable imagenUrl
+                if (!string.IsNullOrWhiteSpace(item.Imagen))
+                {
+                    imagenURL = item.Imagen;//guardar imagen en la variable 
+                    listadeimagenesURL.Add(imagenURL);//esto solo se hace para enviar una lista de imagenes al componente inputmultipleimg
+                    item.Imagen = null;//volvemos null la imagen que ya tenia, si el usuario no cambia la imagen nunca, entonces nunca la enviamos
+                }
+            }
         }
     }
 
-    //este metodo actualiza la imagen con la nueva imagen seleccionada
-    private void ImagenSeleccionada(string imagenBase64)
+    //este metodo actualiza las imagenes con las nuevas imagenes seleccionadas
+    private void ImagenesSeleccionadas(List<string> imagenesBase64)
     {
-        Carrusel.Imagen = imagenBase64;
+        //recorremos el listado de string que nos envio el componente
+        foreach (var item in imagenesBase64)
+        {
+            //por cada iteracion creamos un new imagencarrusel, y le asignamos el string a la propiedad imagen del objecto
+            ImagenesCarrusel imagen = new ImagenesCarrusel()
+            {
+                Imagen = item
+            };
+
+            //cada nuevo objecto imagencarrusel lo guardamos en una lista
+            listadeimagenes.Add(imagen);
+        }
+
+        //la lista llena de objetos imagenescarrusel la igualamos a la lista de imagenes en el objeto carrusel
+        Carrusel.Imagenes = listadeimagenes;
+
+        //hacemos null las propiedades
         imagenURL = null;
+        listadeimagenesURL = null;
     }
 }
 

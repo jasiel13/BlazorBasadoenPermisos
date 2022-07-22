@@ -63,7 +63,16 @@ namespace PriceGas.Server.Controllers
             await HttpContext.InsertarParametrosPaginacionEnRespuesta(queryable, paginacion.CantidadRegistros);
             return await queryable.Paginar(paginacion).ToListAsync();
         }
-     
+
+        [Route("ListadeCursos")]
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<Curso>>> GetCursos()
+        {
+            var listadecursos = await context.Cursos.Where(x => x.Activo == true).ToListAsync();            
+            return listadecursos;
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Curso>> Get(int id)
         {

@@ -116,6 +116,7 @@ namespace PriceGas.Server.Datos
         public DbSet<Pregunta> Preguntas { get; set; }
         public DbSet<Respuesta> Respuestas { get; set; }
         public DbSet<Carrusel> Carrusel { get; set; }
+        public DbSet<ImagenesCarrusel> ImagenesCarrusel { get; set; }        
 
         //modelo de auditoria       
         public DbSet<Auditoria> Auditorias { get; set; }

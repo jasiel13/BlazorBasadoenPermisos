@@ -45,7 +45,7 @@
                                 <br />
                                 <ToolTip Delay="1000">
                                     <ChildContent>
-                                        <CasillaVerificacion @bind-Checked="@Curso.Activo" Label="Activar/Desactivar" />
+                                        <CasillaVerificacion @bind-Checked="@Curso.Activo" ManejarEstados="true"/>
                                     </ChildContent>
                                     <TooltipContent>
                                         <Texto Typo="Typo.body2">Si esta activo no realizar ninguna acción!</Texto>

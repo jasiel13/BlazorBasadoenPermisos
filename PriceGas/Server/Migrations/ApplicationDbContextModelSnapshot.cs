@@ -49,14 +49,14 @@ namespace PriceGas.Server.Migrations
                         new
                         {
                             Id = "54202d5b-deb1-417d-a05e-5b2d8fe48e4d",
-                            ConcurrencyStamp = "c778241b-b38a-453f-a458-2b788428f744",
+                            ConcurrencyStamp = "dff33352-9ba1-4a33-8203-1d79fc11060c",
                             Name = "Administrador",
                             NormalizedName = "Administrador"
                         },
                         new
                         {
                             Id = "06a0e103-5645-40dd-b94c-044d6573821c",
-                            ConcurrencyStamp = "8a51876b-7949-4267-867c-833635620621",
+                            ConcurrencyStamp = "fc65e432-2417-4fcf-bcb7-d687e4b383da",
                             Name = "Usuario",
                             NormalizedName = "Usuario"
                         });
@@ -310,8 +310,14 @@ namespace PriceGas.Server.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<string>("Imagen")
+                    b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LugardeVisualizacion")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Mostrar")
+                        .HasColumnType("bit");
 
                     b.HasKey("CarruselId");
 
@@ -345,6 +351,26 @@ namespace PriceGas.Server.Migrations
                     b.HasKey("CursoId");
 
                     b.ToTable("Cursos");
+                });
+
+            modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.ImagenesCarrusel", b =>
+                {
+                    b.Property<int>("ImagenesCarruselId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<int>("CarruselId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Imagen")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImagenesCarruselId");
+
+                    b.HasIndex("CarruselId");
+
+                    b.ToTable("ImagenesCarrusel");
                 });
 
             modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.Pregunta", b =>
@@ -525,6 +551,15 @@ namespace PriceGas.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.ImagenesCarrusel", b =>
+                {
+                    b.HasOne("PriceGas.Shared.Entidades.Cursos.Carrusel", null)
+                        .WithMany("Imagenes")
+                        .HasForeignKey("CarruselId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.Pregunta", b =>
                 {
                     b.HasOne("PriceGas.Shared.Entidades.Cursos.Quiz", "Quiz")
@@ -552,6 +587,11 @@ namespace PriceGas.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Curso");
+                });
+
+            modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.Carrusel", b =>
+                {
+                    b.Navigation("Imagenes");
                 });
 
             modelBuilder.Entity("PriceGas.Shared.Entidades.Cursos.Curso", b =>

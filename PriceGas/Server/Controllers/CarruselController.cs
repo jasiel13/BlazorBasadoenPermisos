@@ -23,34 +23,57 @@ namespace PriceGas.Server.Controllers
     public class CarruselController : ControllerBase
     {
         private readonly ApplicationDbContext context;
-        private readonly UserManager<ApplicationUser> _userManager;      
-        public CarruselController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMapper mapper;
+        public CarruselController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IMapper mapper)
         {
             this.context = context;
+            this.mapper = mapper;
             _userManager = userManager;          
         }
 
         [HttpPost]
         public async Task<ActionResult<int>> Post(Carrusel carrusel)
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-         
+            var user = await _userManager.GetUserAsync(HttpContext.User);           
             context.Add(carrusel);
             await context.SaveChangesAsync(user.Id);
             return carrusel.CarruselId;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Carrusel>>> Get()
+        public async Task<ActionResult<List<Carrusel>>> Get([FromQuery] PaginacionDTO paginacion)
         {
-            var listadeimagenes = await context.Carrusel.ToListAsync(); 
-            return listadeimagenes;
+            var queryable = context.Carrusel
+                //.Include(x => x.Imagenes)               
+                .AsQueryable();
+            await HttpContext.InsertarParametrosPaginacionEnRespuesta(queryable, paginacion.CantidadRegistros);
+            return await queryable.Paginar(paginacion).ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Carrusel>> Get(int id)
         {
-            var carrusel = await context.Carrusel.FirstOrDefaultAsync();
+            var carrusel = await context.Carrusel.Where(x=>x.CarruselId == id)
+                .Include(x => x.Imagenes).FirstOrDefaultAsync();
+            if (carrusel == null) { return NotFound(); }
+            return carrusel;
+        }
+
+        [Route("Mostrar/{lugar}")]
+        [HttpGet]
+        public async Task<ActionResult<List<Carrusel>>> GetMostar(LugardeVisualizacion lugar)
+        {
+            //validar que sean enteros de la enumeracion
+            //Type enumType = lugar.GetType();
+            //bool isEnumValid = Enum.IsDefined(enumType, lugar);
+            //if (!isEnumValid)
+            //{
+            //    throw new Exception("...");
+            //}
+
+            var carrusel = await context.Carrusel.Where(x => x.LugardeVisualizacion == lugar && x.Mostrar == true)
+                .Include(x => x.Imagenes).ToListAsync();
             if (carrusel == null) { return NotFound(); }
             return carrusel;
         }
@@ -59,16 +82,23 @@ namespace PriceGas.Server.Controllers
         public async Task<ActionResult> Put(Carrusel carrusel)
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
+            
+            var carruselDB = await context.Carrusel
+                .Include(x => x.Imagenes)
+                .FirstOrDefaultAsync(x => x.CarruselId == carrusel.CarruselId);
+            if (carruselDB == null) { return NotFound(); }           
 
-            var oldcarrusel = await context.Carrusel.FindAsync(carrusel.CarruselId);
+            carruselDB = mapper.Map(carrusel, carruselDB);
 
-            if (string.IsNullOrWhiteSpace(carrusel.Imagen))
+            //recorremos las imagenes 
+            foreach (var item in carrusel.Imagenes)
             {
-                carrusel.Imagen = oldcarrusel.Imagen;
+                //si viene una imagen el usuario quiso editarla sino viene el usuario no quiso editar la imagen solo lo demas, y aplicamos el ignore de automapper
+                if (!string.IsNullOrWhiteSpace(item.Imagen))
+                {                    
+                    carruselDB.Imagenes = carrusel.Imagenes;
+                }
             }
-
-            context.Entry(oldcarrusel).CurrentValues.SetValues(carrusel);
-
             await context.SaveChangesAsync(user.Id);
             return NoContent();
         }

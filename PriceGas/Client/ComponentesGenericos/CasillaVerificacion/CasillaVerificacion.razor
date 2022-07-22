@@ -6,15 +6,29 @@
    <input @attributes="UserAttributes" type="checkbox" class="@ClassInput" checked="@BoolValue" @onchange="@OnChange" disabled="@Disabled" @onclick:stopPropagation="true" @onclick:preventDefault="@ReadOnly"/>
    @*<Icono Icon="@GetIcon()"/>*@
  </span>   
-<label class="@Classname" style="@Style">
-    @if (!String.IsNullOrEmpty(Label))
-    {
-        <Texto>@Label</Texto>
-    }
-    @if (ChildContent != null)
-    {
-        <Texto>
-            @ChildContent
-        </Texto>
-    }
-</label>
+ <label class="@Classname" style="@Style">
+     @if (ManejarEstados == true)
+     {
+         if (BoolValue == true)
+         {
+             <Texto Class="text-danger">Desactivar</Texto>
+         }
+         else
+         {
+             <Texto Class="text-primary">Activar</Texto>
+         }
+     }
+     else
+     {
+         @if (!String.IsNullOrEmpty(Label))
+         {
+             <Texto>@Label</Texto>
+         }
+     }
+     @if (ChildContent != null)
+     {
+         <Texto>
+             @ChildContent
+         </Texto>
+     }
+ </label>
