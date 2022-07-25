@@ -40,8 +40,8 @@
                         </p>
                     </Animate>
                     <Animate Animation="Animations.SlideLeft" Duration="TimeSpan.FromSeconds(0.5)" @ref="botonesinicio" IsManual="false">
-                        <a href="" class="btn btn-primary-gradient py-sm-3 px-4 px-sm-5 rounded-pill me-3">Leer Más</a>
-                        <a href="" class="btn btn-secondary-gradient py-sm-3 px-4 px-sm-5 rounded-pill">Contáctanos</a>
+                        <a onclick="document.getElementById('curso').scrollIntoView({ behavior: 'smooth' })" class="btn btn-primary-gradient py-sm-3 px-4 px-sm-5 rounded-pill me-3 text-white">Leer Más</a>
+                        <a onclick="document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })" class="btn btn-secondary-gradient py-sm-3 px-4 px-sm-5 rounded-pill text-white">Contáctanos</a>
                     </Animate>
                 </div>
                 <Animate Animation="Animations.FadeUp" Duration="TimeSpan.FromSeconds(0.3)" @ref="carrusel" IsManual="false" class="col-lg-4 d-flex justify-content-center justify-content-lg-end marginimgprincipal">
