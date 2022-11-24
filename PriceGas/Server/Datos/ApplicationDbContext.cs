@@ -13,7 +13,7 @@ using PriceGas.Shared.Entidades.Cursos;
 namespace PriceGas.Server.Datos
 {
     //esta clase nos permite comunicarnos con la base de datos y ademas construir las tablas 
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>    
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -92,16 +92,16 @@ namespace PriceGas.Server.Datos
             //creamos el modelo entity, creamos un objeto anonimo con new y le pasamos el haskey para crear una llave compuesta con categoriaid y equipoid        
             //modelBuilder.Entity<ZonaEstado>().HasKey(x => new { x.ZonaId, x.EstadoId });
 
-            //aqui cremos los roles de tipo identityrole
-            var roleAdmin = new IdentityRole()
-            //creamos las propiedades id y nombre en este caso admin y utilizamos un id de tipo guid
-            { Id = "54202d5b-deb1-417d-a05e-5b2d8fe48e4d", Name = "Administrador", NormalizedName = "Administrador" };
-            //creamos el rolutilizando hasdata y le pasamos la variable de arriba
-            modelBuilder.Entity<IdentityRole>().HasData(roleAdmin);
+            ////aqui cremos los roles de tipo identityrole
+            //var roleAdmin = new IdentityRole()
+            ////creamos las propiedades id y nombre en este caso admin y utilizamos un id de tipo guid
+            //{ Id = "54202d5b-deb1-417d-a05e-5b2d8fe48e4d", Name = "Administrador", NormalizedName = "Administrador" };
+            ////creamos el rolutilizando hasdata y le pasamos la variable de arriba
+            //modelBuilder.Entity<IdentityRole>().HasData(roleAdmin);
 
-            var Usuario = new IdentityRole()
-            { Id = "06a0e103-5645-40dd-b94c-044d6573821c", Name = "Usuario", NormalizedName = "Usuario" };
-            modelBuilder.Entity<IdentityRole>().HasData(Usuario);         
+            //var Usuario = new IdentityRole()
+            //{ Id = "06a0e103-5645-40dd-b94c-044d6573821c", Name = "Usuario", NormalizedName = "Usuario" };
+            //modelBuilder.Entity<IdentityRole>().HasData(Usuario);         
 
             //aqui es donde hacemos la configuracion de nuestra llave compuesta
             base.OnModelCreating(modelBuilder);

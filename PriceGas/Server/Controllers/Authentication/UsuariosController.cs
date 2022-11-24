@@ -33,85 +33,103 @@ namespace PriceGas.Server.Controllers
             this.roleManager = roleManager;
         }
 
-        //con esta peticion traemos un listado de usuarios desde la bd
-        [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        //con esta peticion traemos un listado de usuarios desde la bd, excepto el usuario actualmente logueado
+        [HttpGet]        
         public async Task<ActionResult<List<UsuarioDTO>>> Get([FromQuery] PaginacionDTO paginacion)
         {
-            var queryable = context.Users.Where(x => x.Activo == true).AsQueryable();
-            await HttpContext.InsertarParametrosPaginacionEnRespuesta(queryable, paginacion.CantidadRegistros);
-            return await queryable.Paginar(paginacion)
-            .Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id, Contraseña = x.ContraseñaTextoPlano }).ToListAsync();//hacemos un mapeo hacia usuariodto          
-        }       
+            var user = await userManager.GetUserAsync(HttpContext.User);
 
-        //con esta peticion traemos el listado de roles desde la bd
-        [HttpGet("roles")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
-        public async Task<ActionResult<List<RolDTO>>> Get()
-        {
-            //mapeamos hacia rolesdto donde el rolid es igual a id
-            return await context.Roles.Select(x => new RolDTO { Nombre = x.Name, RoleId = x.Id }).ToListAsync();
-        }
+            //obtener una lista de todos los usuarios
+            var listadeusuarios = await context.Users.ToListAsync();
 
-        //creamos las peticiones para asignar y eliminar un rol en el httpost le pasamos los metodos creados en editarusuario.razor
-        [HttpPost("asignarRol")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
-        public async Task<ActionResult> AsignarRolUsuario(EditarRolDTO editarRolDTO)
-        {
-            //lo buscamos por su id con findbyid
-            var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);
+            //obtener una lista de usuarios con el id del rol super admin de la tabla userrole
+            var rolyusuario = await context.UserRoles.Where(x => x.RoleId == "57e9c804-f214-4416-b7a5-b6393cc1fc7e").ToListAsync();
 
-            //buscamos el usuario en la tabla aspnetuserrol 
-            var existe = await context.UserRoles.AnyAsync(x => x.UserId == usuario.Id);
+            //obtener todos los usuarios que no sean superadmin que estan en la lista rolyusuario comparandola contra la listausuarios
+            var listadeusuariosfinal = listadeusuarios.Where(p => !rolyusuario.Any(p2 => p2.UserId == p.Id));
 
-            //sino exite el usuario en la tabla aspnetuserrol lo agregamos
-            if (!existe)
+            var bandera = false; 
+
+            //recorremos la lista de usuaros superadmin
+            foreach(var item in rolyusuario)
             {
-                await userManager.AddToRoleAsync(usuario, editarRolDTO.RoleId);//agregamos un rol a un usuario
+                //si un usuario de la lista es igual al usuario logueado, cambiamos la bandera a true
+                if(user.Id == item.UserId)
+                {
+                    bandera = true;
+                }
+            }
 
-                //esto es para ponerle el tipousuario al empleado en base al rol seleccionado
-                await AsignarTipodeUsuario(editarRolDTO);
+            IQueryable<ApplicationUser> queryable;
+
+            //si la bandera es true quiere decir que el usuario logueado es superadmin y puede ver toda la lista de usuarios
+            //si la bandera es false quiere decir que el usuario logueado es admin o basic y no puede ver a los usuarios superadmin
+            if (bandera == true)
+            {
+                queryable = context.Users.Where(x => x.Activo == true).AsQueryable();
             }
             else
             {
-                //si exite el usuario lo borramos directamente de la base de datos 
-                await context.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM AspNetUserRoles WHERE UserId = {usuario.Id};");
+                //filtrar la lista de usuarios final por usuarios activos y que no sea el usuario logueado
+                queryable = listadeusuariosfinal.Where(x => x.Activo == true && x.Id != user.Id).AsQueryable();
+            }
 
-                //y volvemos asignar el nuevo rol seleccionado
-                await userManager.AddToRoleAsync(usuario, editarRolDTO.RoleId);
+           
+            //el usuario solo pueder ver a los usuarios admin y basic y no se puede ver a el mismo
+            //el admin puede ver a los usuarios admin y basic y no se puede ver a el mismo
+            //el superadmin puede ver todos los usuarios incluso a el mismo
 
-                //esto es para ponerle el tipousuario al empleado en base al rol seleccionado
-                await AsignarTipodeUsuario(editarRolDTO);
-            }          
-
-            return NoContent();
+            await HttpContext.InsertarParametrosPaginacionEnRespuesta(queryable, paginacion.CantidadRegistros,true);
+            return queryable.Paginar(paginacion)
+            .Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id, Contraseña = x.ContraseñaTextoPlano }).ToList();//hacemos un mapeo hacia usuariodto          
         }
 
-        [HttpPost("removerRol")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
-        public async Task<ActionResult> RemoverUsuarioRol(EditarRolDTO editarRolDTO)
-        {
-            var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);
-            await userManager.RemoveFromRoleAsync(usuario, editarRolDTO.RoleId);//eliminamos un rol de un usuario
-            return NoContent();
-        }
-
-        ////creamos una paticion delete para borrar los registros
-        //[HttpDelete("{Id}")]
+        ////creamos las peticiones para asignar y eliminar un rol en el httpost le pasamos los metodos creados en editarusuario.razor
+        //[HttpPost("asignarRol")]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
-        ////aqui no pasamos un objeto sino un string id no es como el ejemplo de arriba que asaban editarroldto
-        //public async Task<ActionResult> Delete(string Id)
+        //public async Task<ActionResult> AsignarRolUsuario(EditarRolDTO editarRolDTO)
         //{
-        //    //el id se puede buscar sin necesidad de hacer UsuarioDTO.UserId simplemente poner id que es lo que se pasa como parametro
-        //    var usuario = await userManager.FindByIdAsync(Id);
-        //    //el borrar usuario borra un objeto de tipo usuario
-        //    await userManager.DeleteAsync(usuario);
+        //    //lo buscamos por su id con findbyid
+        //    var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);
+
+        //    //buscamos el usuario en la tabla aspnetuserrol 
+        //    var existe = await context.UserRoles.AnyAsync(x => x.UserId == usuario.Id);
+
+        //    //sino exite el usuario en la tabla aspnetuserrol lo agregamos
+        //    if (!existe)
+        //    {
+        //        await userManager.AddToRoleAsync(usuario, editarRolDTO.RoleId);//agregamos un rol a un usuario
+
+        //        //esto es para ponerle el tipousuario al empleado en base al rol seleccionado
+        //        await AsignarTipodeUsuario(editarRolDTO);
+        //    }
+        //    else
+        //    {
+        //        //si exite el usuario lo borramos directamente de la base de datos 
+        //        await context.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM AspNetUserRoles WHERE UserId = {usuario.Id};");
+
+        //        //y volvemos asignar el nuevo rol seleccionado
+        //        await userManager.AddToRoleAsync(usuario, editarRolDTO.RoleId);
+
+        //        //esto es para ponerle el tipousuario al empleado en base al rol seleccionado
+        //        await AsignarTipodeUsuario(editarRolDTO);
+        //    }          
+
         //    return NoContent();
         //}
 
+        //[HttpPost("removerRol")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        //public async Task<ActionResult> RemoverUsuarioRol(EditarRolDTO editarRolDTO)
+        //{
+        //    var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);
+        //    await userManager.RemoveFromRoleAsync(usuario, editarRolDTO.RoleId);//eliminamos un rol de un usuario
+        //    return NoContent();
+        //}       
+
         [Route("Desactivar")]
         [HttpPut]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> PutDesactivar(UsuarioDTO usuarioDTO)
         {
             var user = await userManager.GetUserAsync(HttpContext.User);
@@ -122,7 +140,7 @@ namespace PriceGas.Server.Controllers
             //al momento de activar de nuevo el usuario el dto que se manda tiene estos campos null por eso antes de editar hay que llenarlos con datos
             if (usuarioDTO.Usuario == null)
             {
-                usuarioDTO.Usuario = oldUsuario.UserName;               
+                usuarioDTO.Usuario = oldUsuario.UserName;
             }
 
             //las propiedades sin cambios se ignoran y solo los valores de cambios se incluyen en la consulta de actualización
@@ -131,32 +149,34 @@ namespace PriceGas.Server.Controllers
             await context.SaveChangesAsync(user.Id);
             return NoContent();
         }
-        public async Task AsignarTipodeUsuario(EditarRolDTO editarRolDTO)
-        {
-            //lo buscamos por su id con findbyid
-            var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);                      
 
-            if(editarRolDTO.RoleId == "Administrador")
-            {
-                usuario.TipodeUsuarios = TipodeUsuario.Administrador;
-            }
-            else 
-            {
-                usuario.TipodeUsuarios = TipodeUsuario.Usuario;
-            }           
+        //public async Task AsignarTipodeUsuario(EditarRolDTO editarRolDTO)
+        //{
+        //    //lo buscamos por su id con findbyid
+        //    var usuario = await userManager.FindByIdAsync(editarRolDTO.UserId);                      
 
-            //obtener el registro original usando el método FindAsync 
-            var oldusuario = await context.Users.FindAsync(usuario.Id);
+        //    if(editarRolDTO.RoleId == "Administrador")
+        //    {
+        //        usuario.TipodeUsuarios = TipodeUsuario.Administrador;
+        //    }
+        //    else 
+        //    {
+        //        usuario.TipodeUsuarios = TipodeUsuario.Usuario;
+        //    }           
 
-            //las propiedades sin cambios se ignoran y solo los valores de cambios se incluyen en la consulta de actualización
-            context.Entry(oldusuario).CurrentValues.SetValues(usuario);
+        //    //obtener el registro original usando el método FindAsync 
+        //    var oldusuario = await context.Users.FindAsync(usuario.Id);
 
-            await context.SaveChangesAsync();
-        }
+        //    //las propiedades sin cambios se ignoran y solo los valores de cambios se incluyen en la consulta de actualización
+        //    context.Entry(oldusuario).CurrentValues.SetValues(usuario);
+
+        //    await context.SaveChangesAsync();
+        //}
 
         //filtrar para ver los usuarios eliminados
         [Route("FiltroActivos")]
         [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult<PaginadorGenerico<UsuarioDTO>>> Get(string buscar, Boolean filtro, int pagina, int registros_por_pagina = 10)
         {
             List<UsuarioDTO> usuario;
@@ -167,14 +187,14 @@ namespace PriceGas.Server.Controllers
             ////////////////////////         
 
             // Recuperamos los registros completos                 
-
+            var user = await userManager.GetUserAsync(HttpContext.User);
             if (filtro == true)
             {
-                usuario = context.Users.Where(x => x.Activo == false).Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id }).ToList();//hacemos un mapeo hacia usuariodto  
+                usuario = context.Users.Where(x => x.Activo == false && x.Id != user.Id).Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id }).ToList();//hacemos un mapeo hacia usuariodto  
             }
             else
             {
-                usuario = context.Users.Where(x => x.Activo == true).Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id }).ToList();//hacemos un mapeo hacia usuariodto  
+                usuario = context.Users.Where(x => x.Activo == true && x.Id != user.Id).Select(x => new UsuarioDTO { Usuario = x.UserName, UserId = x.Id }).ToList();//hacemos un mapeo hacia usuariodto  
                 //_pro = await context.Proveedores.ToListAsync();
             }
 

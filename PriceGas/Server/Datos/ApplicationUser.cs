@@ -16,8 +16,9 @@ namespace PriceGas.Server.Datos
         public enum TipodeUsuario
         {
             Ninguno,
-            Administrador, //Administrador del sistema tiene todos los privilegios y permisos
-            Usuario,//Usuario del sistema, tiene menos privilegios que el administrador            
+            SuperAdmin, //Administrador del sistema tiene todos los privilegios y permisos
+            Admin,//Usuario del sistema, tiene menos privilegios que el administrador
+            Basic
         }
     }
 }

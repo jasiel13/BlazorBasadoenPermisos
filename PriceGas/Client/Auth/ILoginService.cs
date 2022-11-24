@@ -1,6 +1,8 @@
-﻿using System;
+﻿using PriceGas.Shared.Entidades;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PriceGas.Client.Auth
@@ -12,6 +14,6 @@ namespace PriceGas.Client.Auth
         Task Login(string token);
 
         //logout se va encargar de eliminar de localstorage el token
-        Task Logout();
+        Task Logout();        
     }
 }

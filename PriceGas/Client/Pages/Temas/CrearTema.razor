@@ -2,7 +2,7 @@
 @inject IRepositorio repositorio
 @inject NavigationManager navigationManager
 @inject IMostrarMensaje mostrarMensajes
-@attribute [Authorize(Roles = "Administrador")]
+@*@attribute [Authorize(Roles = "Administrador")]*@
 
 <FormularioTema OnValidSubmit="Crear" Tema="Tema" Titulo="Crear Tema"></FormularioTema>
 

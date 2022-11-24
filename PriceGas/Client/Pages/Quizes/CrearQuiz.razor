@@ -2,7 +2,7 @@
 @inject IRepositorio repositorio
 @inject NavigationManager navigationManager
 @inject IMostrarMensaje mostrarMensajes
-@attribute [Authorize(Roles = "Administrador,Usuario")]
+@*@attribute [Authorize(Roles = "Administrador,Usuario")]*@
 
 <FormularioQuiz OnValidSubmit="Crear" Quiz="Quiz" Titulo="Crear Quiz" />
 

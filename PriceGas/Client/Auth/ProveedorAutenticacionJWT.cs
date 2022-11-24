@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PriceGas.Shared.Entidades;
 
 namespace PriceGas.Client.Auth
 {
@@ -24,7 +26,7 @@ namespace PriceGas.Client.Auth
         //le pasamos una llave a localstorage
         public static readonly string TOKENKEY = "TOKENKEY";
         private readonly IJSRuntime js;
-        private readonly HttpClient httpClient;
+        private readonly HttpClient httpClient;       
 
         //creamos el usuario anonimo
         private AuthenticationState Anonimo => new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -40,15 +42,24 @@ namespace PriceGas.Client.Auth
             {
                 return Anonimo;
             }
+
             return ConstruirAuthenticationState(token);
-        }
+        }       
+
         //si tiene un token lo vamos a utilizar para crear el estado de autenticacion, creamos un metodo que recibe como parametro el token
         private AuthenticationState ConstruirAuthenticationState(string token)
-        {
-            //colocamos en la cabecera que recibimos de http el token de localstorage asi podemos autenticarnos en cada peticion http que hagamos
+        {            
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-            //retornamos el token del cual vamos a extraer los claims usamos el metodo parseclaimsfromjwt de microsoft
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+
+            //se puso aqui para poder ver los claims que trae el webtoken desde el controlador cuentas
+            var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+
+            /*el claimprincipal tiene todos los claim y a su vez el authenticationstate tiene el claimprincipal
+            y asi podemos injectar el authenticationstate del lado del cliente para usar la autorizacion basada en permisos*/
+            return new AuthenticationState(new ClaimsPrincipal(identity));
+
+            //asi estaba antes
+            //return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
         }
 
         //este metodo lo creo el equipo de microsoft para trabajar con los claims aun no esta incluido en blazor 
@@ -83,7 +94,6 @@ namespace PriceGas.Client.Auth
             claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
             return claims;
         }
-
         private byte[] ParseBase64WithoutPadding(string base64)
         {
             switch (base64.Length % 4)
@@ -102,12 +112,11 @@ namespace PriceGas.Client.Auth
             //con esto notificamos a blazor que el estado de autenticacion del usuario a cambiado
             NotifyAuthenticationStateChanged(Task.FromResult(authState));
         }
-
         public async Task Logout()
         {
             await js.RemoveItem(TOKENKEY);//eliminamos el token de localstorage
             httpClient.DefaultRequestHeaders.Authorization = null;//quitamos de la cabecera http el token
             NotifyAuthenticationStateChanged(Task.FromResult(Anonimo));//notificamos a blazor que hubo un cambio en el estado
-        }
+        }       
     }
 }

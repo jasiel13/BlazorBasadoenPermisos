@@ -14,6 +14,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using PriceGas.Shared.Constants;
+using PriceGas.Server.Helpers;
 
 namespace PriceGas.Server.Controllers
 {
@@ -27,19 +29,23 @@ namespace PriceGas.Server.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         //conesto podemos buscar la llave jwt
         private readonly IConfiguration _configuration;
+        //añadimos esto para poder usarlo en el metodo GetPermisoDto
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        private readonly ApplicationDbContext context;
+        private readonly ApplicationDbContext context;    
 
         public CuentasController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IConfiguration configuration,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             this.context = context;
+            _roleManager = roleManager;
         }
 
         //creamos un controlador 
@@ -110,18 +116,56 @@ namespace PriceGas.Server.Controllers
         {
             //creamos un claim es una infomracion en la cual podemos confiar ya que la creamos desde la webapi
             var claims = new List<Claim>()
-            {
+            {               
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
                 new Claim(ClaimTypes.Name, user.UserName),//nombre con el que se registro del usuario              
                 new Claim("miValor", "Lo que yo quiera"),//informacion que tu quieras  
                 new Claim(ClaimTypes.NameIdentifier, user.Id),//recuperamos el id del usuario logueado
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())//identificador para identificar un webtoken en particular
-             };
+             };             
+
+            //instanciamos un nuevo permissiondto
+            PermissionDTO permiso = new PermissionDTO();
 
             foreach (var rol in roles)
-            {
+            {               
+                //añadimos un claim por cada rol
                 claims.Add(new Claim(ClaimTypes.Role, rol));
+
+                //obtenemos un permissiondto por cada rol, el punto result se puso por que el metodo tiene un task
+                permiso = GetPermisoDTO(rol).Result;              
             }
+
+
+            /*NOTA:
+             * -los permisos no se agregaban a los claim por eso no funcionaba, aqui es donde construimos los claim
+             * -los claim van en el json web token que enviamos al ProveedorAutenticacionJWT
+             * -en el ProveedorAutenticacionJWT construimos el calimPrincipal el cual va añadido al AuthenticationStateProvider
+             * -el AuthenticationStateProvider es el que nos permitira poner la autorizacion basada en permisos del lado del cliente
+             */
+
+
+            //inicializamos una variable en 0 par aobtener el index de la iteracion
+            int i = 0;
+
+            if(permiso.RoleClaims != null && permiso.RoleClaims.Count > 0)
+            {
+                //recorremos la lista de permisos para ir creando un claim por cada permiso
+                foreach (var item in permiso.RoleClaims)
+                {
+                    //solo vamos agregar los permisos que estan en true
+                    if (item.Selected == true)
+                    {
+                        //creamos un nuevo claim de typo permiso, concatenamos al Type ("Permission") un numero ("Permission1")
+                        //esto por que cada permiso debe ser un claim independiente y si todos son Type ("Permission") los mete en un array
+                        //y si estan en un array en el autenticationstate no los puede leer y no funcionan los permisos del lado del cliente (error en la pagina ProveedorAutenticacionJWT)
+                        var nuevoclaimpermiso = new Claim(item.Type + i, item.Value);
+                        //añadimos el claim a la lista de claims
+                        claims.Add(nuevoclaimpermiso);
+                    }
+                    i++;
+                }
+            }           
 
             //creamos una instancia con la llave simetrica de seguridad
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]));
@@ -219,5 +263,45 @@ namespace PriceGas.Server.Controllers
                 return Content("Token de verificación no válido");
             }
         }       
+
+        //obtener la lista de permisos por rol
+        public async Task<PermissionDTO> GetPermisoDTO(string nombrerol)
+        {
+            //instanciamos un nuevo permissiondto
+            var model = new PermissionDTO();
+
+            //instanciamos una nueva lista de roleclaimdto
+            var allPermissions = new List<RoleClaimsDTO>();
+            
+            //buscamos el rol por su nombre
+            var role = await _roleManager.FindByNameAsync(nombrerol);
+         
+            //obtenemos todos los permisos del que tiene un rol en especifico de tipo products
+            allPermissions.GetPermissions(typeof(Permissions.Products), role.Id);
+
+            //le pasamos el id del rol al permissiondto (no es necesario se puede omitir)
+            model.RoleId = role.Id;
+
+            //obtenemos los claims por rol especificado
+            var claims = await _roleManager.GetClaimsAsync(role);
+            var allClaimValues = allPermissions.Select(a => a.Value).ToList();
+            var roleClaimValues = claims.Select(a => a.Value).ToList();
+            var authorizedClaims = allClaimValues.Intersect(roleClaimValues).ToList();
+
+            //recorremos los permisos y si el permiso fue seleccionado se pone en true su propiedad selected
+            foreach (var permission in allPermissions)
+            {
+                if (authorizedClaims.Any(a => a == permission.Value))
+                {
+                    permission.Selected = true;
+                }
+            }
+
+            //pasamos los permisos al permissiondto
+            model.RoleClaims = allPermissions;
+
+            //retornamos el dto
+            return model;
+        }
     }
 }

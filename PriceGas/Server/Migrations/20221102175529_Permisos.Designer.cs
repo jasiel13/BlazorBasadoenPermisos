@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceGas.Server.Datos;
 
 namespace PriceGas.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221102175529_Permisos")]
+    partial class Permisos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,6 +46,22 @@ namespace PriceGas.Server.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "54202d5b-deb1-417d-a05e-5b2d8fe48e4d",
+                            ConcurrencyStamp = "de27da23-1e67-4879-ba31-3adc61a17ed3",
+                            Name = "Administrador",
+                            NormalizedName = "Administrador"
+                        },
+                        new
+                        {
+                            Id = "06a0e103-5645-40dd-b94c-044d6573821c",
+                            ConcurrencyStamp = "db73b093-a8d8-47d0-8c0e-7d20346748fb",
+                            Name = "Usuario",
+                            NormalizedName = "Usuario"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

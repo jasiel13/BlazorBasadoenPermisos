@@ -34,7 +34,7 @@ namespace PriceGas.Server.Controllers
         }       
 
         [HttpPost]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
         public async Task<ActionResult<int>> Post(ArchivoAdjunto archivo)
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -59,7 +59,7 @@ namespace PriceGas.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador,Usuario")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador,Usuario")]
         public async Task<ActionResult<ArchivoAdjunto>> Get(int Id)
         {
             var archivo = context.ArchivoAdjuntos.Where(x => x.ArchivoAdjuntoId == Id).FirstOrDefault();
@@ -69,7 +69,7 @@ namespace PriceGas.Server.Controllers
 
         //creamos una peticion delete para borrar los registros
         [HttpDelete("{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
         public async Task<ActionResult> Delete(int id)
         {
             //verificamos si existe un cliente con ese id
@@ -108,7 +108,7 @@ namespace PriceGas.Server.Controllers
 
         [Route("Video")]
         [HttpPost]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrador")]
         public async Task<ActionResult<int>> PostVideo(ArchivoAdjunto uploadedFile)
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);

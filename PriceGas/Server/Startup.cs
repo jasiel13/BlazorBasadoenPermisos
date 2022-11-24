@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -15,12 +16,15 @@ using Microsoft.IdentityModel.Tokens;
 using PriceGas.Client.Helpers;
 using PriceGas.Server.Datos;
 using PriceGas.Server.Helpers;
+using PriceGas.Server.Permission;
+using PriceGas.Shared.Constants;
 using Serilog;
 using Serilog.Sinks.MSSqlServer;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -39,6 +43,10 @@ namespace PriceGas.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //servicios para administrar politicas o permisos de roles
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
             //poner la conexion a la bd  
             services.AddDbContext<ApplicationDbContext>
                 (options => options.UseSqlServer(Configuration.GetConnectionString("SqlConnectionDesarrollo")));
@@ -64,6 +72,8 @@ namespace PriceGas.Server
                  }
                 )
                .AddEntityFrameworkStores<ApplicationDbContext>()
+               .AddRoleManager<RoleManager<IdentityRole>>()//nuevo
+               .AddSignInManager<SignInManager<ApplicationUser>>()//nuevo
                .AddDefaultTokenProviders();
 
             //configuramos los jsonwebtokens conesto vamos a poder enviar hacia el proyecto de blazor las credenciales del usuario
@@ -95,6 +105,16 @@ namespace PriceGas.Server
 
             services.AddControllersWithViews();
             services.AddRazorPages();
+
+            //nuevo
+            services.AddAuthorization(options =>
+            {
+                // Here I stored necessary permissions/roles in a constant
+                foreach (var prop in typeof(Permissions).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy))
+                {
+                    options.AddPolicy(prop.GetValue(null).ToString(), policy => policy.RequireClaim("Permission", prop.GetValue(null).ToString()));
+                }
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

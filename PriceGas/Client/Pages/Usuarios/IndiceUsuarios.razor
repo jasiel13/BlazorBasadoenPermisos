@@ -2,7 +2,6 @@
 @inject IRepositorio repositorio
 @inject IMostrarMensaje mostrarMensajes
 @inject IJSRuntime JS
-@attribute [Authorize(Roles = "Administrador")]
 @using System.Security.Claims
 
 <Card Class="card">
@@ -14,22 +13,29 @@
                         <Texto Typo="Typo.h5" Class="mb-0">Usuarios</Texto>
                     </div>
                 </div>
-                <div class="d-inline-block mr-3">
-                    <div class="input-group input-group-sm d-flex align-items-center">
-                        <Enlace Class="btn btn-outline-dark btn-sm" Href="registro"><Icono Icon="fas fa-plus" data-fa-transform="shrink-3 down-2"></Icono><Texto Typo="Typo.normal" Class="d-none d-sm-inline-block ml-1">Crear</Texto></Enlace>
+                <AuthorizeView Roles="SuperAdmin,Admin">
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            <Enlace Class="btn btn-outline-dark btn-sm" Href="registro"><Icono Icon="fas fa-plus" data-fa-transform="shrink-3 down-2"></Icono><Texto Typo="Typo.normal" Class="d-none d-sm-inline-block ml-1">Crear</Texto></Enlace>
+                        </div>
                     </div>
-                </div>
-                <div class="d-inline-block mr-3">
-                    <div class="input-group input-group-sm d-flex align-items-center">
-                        @if (user.IsInRole("Administrador"))
-                        {
-                            <div class="custom-control custom-switch">
-                                <input class="custom-control-input" id="customSwitch1" type="checkbox" @onchange="e => CheckChanged(e)">
-                                <label class="custom-control-label" for="customSwitch1">Inactivos</label>
-                            </div>
-                        }
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            <Enlace Class="btn btn-outline-dark btn-sm" Href="indice-roles"><Icono Icon="fas fa-user-tag" data-fa-transform="shrink-3 down-2"></Icono><Texto Typo="Typo.normal" Class="d-none d-sm-inline-block ml-1">Roles</Texto></Enlace>
+                        </div>
                     </div>
-                </div>
+                    <div class="d-inline-block mr-3">
+                        <div class="input-group input-group-sm d-flex align-items-center">
+                            @if (user.IsInRole("SuperAdmin"))
+                            {
+                                <div class="custom-control custom-switch">
+                                    <input class="custom-control-input" id="customSwitch1" type="checkbox" @onchange="e => CheckChanged(e)">
+                                    <label class="custom-control-label" for="customSwitch1">Inactivos</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </AuthorizeView>
             </div>
         </div>
     </CardHeader>
@@ -41,11 +47,14 @@
                     <thead class="text-center">
                         <tr>
                             <th>Usuario</th>
-                            @if (user.IsInRole("Administrador"))
+                            @if (user.IsInRole("SuperAdmin"))
                             {
-                               <th>Contraseña</th>
+                                <th>Contraseña</th>
                             }
-                            <th>Acciones</th>
+                            @if (user.IsInRole("SuperAdmin") || user.IsInRole("Admin"))
+                            {
+                                <th>Acciones</th>
+                            }
                         </tr>
                     </thead>
                     <tbody class="text-center">
@@ -55,24 +64,30 @@
                                 <td>
                                     @usuario.Usuario
                                 </td>
-                                @if (user.IsInRole("Administrador"))
+                                @if (user.IsInRole("SuperAdmin"))
                                 {
                                     <td>
                                         @usuario.Contraseña
                                     </td>
                                 }
-                                <td>
-                                    <Enlace Class="btn p-0" Href=@("editar-usuario/"+usuario.UserId) data-bs-toggle="tooltip" data-bs-placement="top" title="Editar">
-                                        <Icono Icon="text-500 fas fa-edit" />
-                                    </Enlace>
-                                    @if (user.IsInRole("Administrador"))
-                                    {
-                                        <BotonIcono Class="btn p-0 ms-2" ButtonType="ButtonType.Button" data-bs-toggle="tooltip" data-bs-placement="top" title="Borrar" Icon="text-500 fas fa-trash-alt" @onclick="@(()=>BorrarUsuario(usuario))" />
-                                        <Enlace Class="btn p-0" Href=@("olvido-contraseña/"+usuario.Usuario) data-bs-toggle="tooltip" data-bs-placement="top" title="Restablecer Contraseña">
-                                            <Icono Icon="text-500 oi oi-action-undo" />
+                                @if (user.IsInRole("SuperAdmin") || user.IsInRole("Admin"))
+                                {
+                                    <td>
+                                        <Enlace Class="btn p-0" Href=@("asignar-rol/" + usuario.UserId+"/"+usuario.Usuario) data-bs-toggle="tooltip" data-bs-placement="top" title="Administrar Roles">
+                                            <Icono Icon="text-500 fas fa-user-tag" />
                                         </Enlace>
-                                    }
-                                </td>                               
+                                        @if (user.IsInRole("SuperAdmin"))
+                                        {
+                                            <Enlace Class="btn p-0" Href=@("editar-usuario/" + usuario.UserId) data-bs-toggle="tooltip" data-bs-placement="top" title="Editar">
+                                             <Icono Icon="text-500 fas fa-edit" />
+                                            </Enlace>
+                                            <BotonIcono Class="btn p-0 ms-2" ButtonType="ButtonType.Button" data-bs-toggle="tooltip" data-bs-placement="top" title="Borrar" Icon="text-500 fas fa-trash-alt" @onclick="@(() => BorrarUsuario(usuario))" />
+                                            <Enlace Class="btn p-0" Href=@("olvido-contraseña/" + usuario.Usuario) data-bs-toggle="tooltip" data-bs-placement="top" title="Restablecer Contraseña">
+                                                <Icono Icon="text-500 oi oi-action-undo" />
+                                            </Enlace>
+                                        }                                
+                                    </td>   
+                                 }
                             </tr>      
                          }
                     </tbody>
@@ -129,6 +144,8 @@
         }
     }
 
+    #region BorrarUusuario
+
     private async Task BorrarUsuario(UsuarioDTO usuarioDTO)
     {
         string mensajeconfirmacion = $"¿Desea borrar este usuario: {usuarioDTO.Usuario}?";
@@ -148,6 +165,8 @@
             }
         }
     }
+
+    #endregion
 
     #region FiltroActivos
 

@@ -1,0 +1,114 @@
+﻿@page "/indice-roles"
+@inject IRepositorio repositorio
+@inject IMostrarMensaje mostrarMensajes
+@inject NavigationManager navigationManager
+@inject IJSRuntime JS
+
+<Card Class="card">
+    <CardHeader Class="card-header">
+        <Texto Typo="Typo.h5" Class="mb-0">Roles</Texto>
+    </CardHeader>
+    <CardBody Class="card-body">
+        <div class="input-group">
+            <input name="roleName" class="form-control form-control-sm w-25" placeholder="Nombre del Rol" @bind-value="UserRolesDTO.RoleName">
+            <span class="input-group-btn">
+                <button class="btn btn-primary btn-sm" @onclick="CrearRol">Añadir Nuevo Rol</button>
+            </span>
+        </div>
+        <br />
+        <ListadoGenerico Listado="roles">
+            <HayRegistrosCompleto>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>Rol</th>
+                                <th>Id</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rol in roles)
+                            {
+                                <tr>
+                                    <td>@rol.RoleName</td>
+                                    <td>@rol.RoleId</td>
+                                    <td>
+                                        <Enlace Class="btn p-0" Href=@("asignar-permisos/"+rol.RoleId+"/"+rol.RoleName) data-bs-toggle="tooltip" data-bs-placement="top" title="Administrar Permisos">
+                                            <Icono Icon="text-500 fas fa-user-tag" />
+                                        </Enlace>
+                                        <BotonIcono Class="btn p-0 ms-2" ButtonType="ButtonType.Button" data-bs-toggle="tooltip" data-bs-placement="top" title="Borrar" Icon="text-500 fas fa-trash-alt" @onclick="@(() => BorrarRol(rol))" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </HayRegistrosCompleto>
+        </ListadoGenerico>
+    </CardBody>
+    <CardFooter Class="card-footer border-top d-flex justify-content-center bg-transparent" />
+</Card>
+
+@code {
+
+    private List<UserRolesDTO> roles = new List<UserRolesDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRoles();
+    }
+
+    public async Task CargarRoles()
+    {
+        var httpResponse = await repositorio.Get<List<UserRolesDTO>>("api/Roles");
+
+        if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            roles = httpResponse.Response;
+        }
+    }
+
+    private UserRolesDTO UserRolesDTO = new UserRolesDTO();
+
+    private async Task CrearRol()
+    {
+        var httpResponse = await repositorio.Post("api/Roles", UserRolesDTO);
+        if (httpResponse.Error)
+        {
+            var body = await httpResponse.GetBody();
+            await mostrarMensajes.MostrarMensajeError(body);
+        }
+        else
+        {
+            await CargarRoles();
+        }
+    }
+
+    #region BorrarUusuario
+
+    private async Task BorrarRol(UserRolesDTO rolDTO)
+    {
+        string mensajeconfirmacion = $"¿Desea borrar este rol: {rolDTO.RoleName}?";
+        var confirmado = await JS.Confirm("Confirmar", mensajeconfirmacion, IJSRuntimeExtensionMethods.TipoMensajeSweetAlert.question);
+        if (confirmado)
+        {            
+            var responseHttp = await repositorio.Delete($"api/Roles/{rolDTO.RoleId}");
+            if (responseHttp.Error)
+            {
+                await mostrarMensajes.MostrarMensajeError(await responseHttp.GetBody());
+            }
+            else
+            {
+                //esto para volver a cargar los registros
+                await CargarRoles();
+            }
+        }
+    }
+
+    #endregion
+}

@@ -3,7 +3,7 @@
 @inject NavigationManager navigationManager
 @inject ILoginService loginService
 @inject IMostrarMensaje mostrarMensajes
-@attribute [Authorize(Roles = "Administrador")]
+@*@attribute [Authorize(Roles = "Administrador")]*@
 @using Pages.Usuarios;
 
 <EditForm Model="@userInfo" OnValidSubmit="CrearUsuario">

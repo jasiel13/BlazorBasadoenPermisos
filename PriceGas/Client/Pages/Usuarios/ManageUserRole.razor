@@ -1,0 +1,93 @@
+﻿@page "/asignar-rol/{UserId}/{Nombre}"
+@inject IRepositorio repositorio
+@inject IMostrarMensaje mostrarMensajes
+
+<Card Class="card">
+    <CardHeader Class="card-header">
+        <Texto Typo="Typo.h5">Administrar Roles del usuario: @Nombre</Texto>
+    </CardHeader>
+    <CardBody Class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover table-bordered text-center">
+                <thead>
+                    <tr>
+                        <th>Rol</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (manageUserRolesDto != null)
+                    {
+                        @foreach (var rol in manageUserRolesDto.UserRoles)
+                        {
+                            <tr>
+                                <td>@rol.RoleName</td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="gridCheck" @bind="@rol.Selected">
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </CardBody>
+    <CardFooter Class="card-footer border-top text-right bg-transparent">
+        <Boton Class="btn btn-secondary btn-sm mr-2" ButtonType="ButtonType.Button" @onclick="AsignarRol"><Icono Icon="fas fa-check fs--2 mr-1"></Icono>Guardar</Boton>
+    </CardFooter>
+</Card>
+
+@code{
+
+    //colocamos un parametro con el userid del usuario
+    [Parameter] public string UserId { get; set; }
+    [Parameter] public string Nombre { get; set; }
+
+    //colocamos un listado de roles para pasarlo a una tabla
+    //private List<UserRolesDTO> roles = new List<UserRolesDTO>();
+
+    ManageUserRolesDTO manageUserRolesDto { get; set; }
+
+    //creamos un metodo para traer el listado de roles desde la bd
+    protected override async Task OnInitializedAsync()
+    {
+        var httpResponse = await repositorio.Get<ManageUserRolesDTO>($"api/UserRoles/{UserId}");
+        //mostramos un mensaje de error
+        if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            manageUserRolesDto = httpResponse.Response;
+        }
+    }
+
+    //estos metodos van a consumir unos endpoint desde el controlador de userroles
+    private async Task AsignarRol()
+    {
+        await EditarRol("api/UserRoles");
+    }
+
+    //creamos un metodo que recibe como parametro una url
+    private async Task EditarRol(string url)
+    {
+        //aqui creamos la variable con las propiedades del editarroldto para pasarlo junto con la url en el httpresponse
+        var rolDTO = new ManageUserRolesDTO() { UserId = UserId, UserRoles = manageUserRolesDto.UserRoles};
+
+        //por medio del editarroldto vamos a traer que rol queremos pasar a cual usuario ya que contiene el userid y rolid
+        var httpResponse = await repositorio.Post<ManageUserRolesDTO>(url, rolDTO);
+
+        //mostramos un mensaje de error y sino un mensaje de que la operacion fue realizada con exito
+        if (httpResponse.Error)
+        {
+            await mostrarMensajes.MostrarMensajeError(await httpResponse.GetBody());
+        }
+        else
+        {
+            await mostrarMensajes.MostrarMensajeExitoso("Operación realizada");
+        }
+    }
+}
